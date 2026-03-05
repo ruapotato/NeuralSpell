@@ -103,11 +103,17 @@ def generate_correction_samples(model, batch, sp, device, n=3):
         logits = model(batch["input_ids"].to(device), batch["attention_mask"].to(device))
         preds = logits.argmax(dim=-1)
 
-    for i in range(min(n, batch["input_ids"].size(0))):
+    for i in range(batch["input_ids"].size(0)):
+        if len(samples) >= n:
+            break
         seq_len = batch["attention_mask"][i].sum().item()
         input_ids = batch["input_ids"][i][:seq_len].tolist()
         label_ids = batch["labels"][i][:seq_len].tolist()
         pred_ids = preds[i][:seq_len].tolist()
+
+        # Skip identity pairs — only show samples with actual corruptions
+        if input_ids == label_ids:
+            continue
 
         corrupted_text = sp.Decode(input_ids)[:120]
         predicted_text = sp.Decode(pred_ids)[:120]
@@ -139,8 +145,21 @@ def train(args):
     # Load pretrained weights
     print(f"Loading pretrained model from {args.pretrained}...")
     ckpt = torch.load(args.pretrained, map_location=device, weights_only=True)
-    model.load_state_dict(ckpt["model_state_dict"])
+    state_dict = ckpt["model_state_dict"]
+    # Strip torch.compile _orig_mod. prefix if present
+    state_dict = {k.replace("_orig_mod.", ""): v for k, v in state_dict.items()}
+    model.load_state_dict(state_dict)
     print(f"Loaded from step {ckpt.get('step', '?')}")
+
+    # Resume from finetune checkpoint (before compile, so keys are clean)
+    step = 0
+    if args.resume:
+        rckpt = torch.load(args.resume, map_location=device, weights_only=True)
+        rstate = rckpt["model_state_dict"]
+        rstate = {k.replace("_orig_mod.", ""): v for k, v in rstate.items()}
+        model.load_state_dict(rstate)
+        step = rckpt.get("step", 0)
+        print(f"Resumed from step {step}")
 
     if hasattr(torch, "compile"):
         print("Compiling model with torch.compile...")
@@ -162,6 +181,13 @@ def train(args):
         total_steps=FINETUNE_CONFIG["total_steps"],
     )
 
+    # Restore optimizer state and advance scheduler after optimizer creation
+    if args.resume and 'rckpt' in locals():
+        if "optimizer_state_dict" in rckpt:
+            optimizer.load_state_dict(rckpt["optimizer_state_dict"])
+        for _ in range(step):
+            scheduler.step()
+
     engine = CorruptionEngine(seed=42)
     dataset = CorrectionDataset(
         data_dir=args.data_dir,
@@ -181,18 +207,6 @@ def train(args):
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     logger = TrainingLogger(checkpoint_dir / "logs")
-
-    # Resume support
-    step = 0
-    if args.resume:
-        rckpt = torch.load(args.resume, map_location=device, weights_only=True)
-        model.load_state_dict(rckpt["model_state_dict"])
-        if "optimizer_state_dict" in rckpt:
-            optimizer.load_state_dict(rckpt["optimizer_state_dict"])
-        step = rckpt.get("step", 0)
-        for _ in range(step):
-            scheduler.step()
-        print(f"Resumed from step {step}")
 
     running_loss = 0.0
     running_correct = 0
@@ -259,7 +273,7 @@ def train(args):
             torch.save(
                 {
                     "step": step,
-                    "model_state_dict": model.state_dict(),
+                    "model_state_dict": {k.replace("_orig_mod.", ""): v for k, v in model.state_dict().items()},
                     "optimizer_state_dict": optimizer.state_dict(),
                     "loss": loss.item(),
                 },
@@ -268,7 +282,7 @@ def train(args):
             print(f"Saved checkpoint: {ckpt_path}")
 
     final_path = checkpoint_dir / "best.pt"
-    torch.save({"model_state_dict": model.state_dict(), "step": step}, final_path)
+    torch.save({"model_state_dict": {k.replace("_orig_mod.", ""): v for k, v in model.state_dict().items()}, "step": step}, final_path)
     print(f"Fine-tuning complete. Final model saved to {final_path}")
     logger.close()
 

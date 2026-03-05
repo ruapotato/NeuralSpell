@@ -16,7 +16,7 @@ from training.scheduler import WSDScheduler
 PRETRAIN_CONFIG = {
     "lr": 1e-4,
     "warmup_steps": 10000,
-    "total_steps": 500000,
+    "total_steps": 270000,
     "batch_size": 128,
     "seq_length": 256,
     "mask_prob": 0.15,
@@ -209,7 +209,9 @@ def train(args):
     step = 0
     if args.resume:
         ckpt = torch.load(args.resume, map_location=device, weights_only=True)
-        model.load_state_dict(ckpt["model_state_dict"])
+        state_dict = ckpt["model_state_dict"]
+        state_dict = {k.replace("_orig_mod.", ""): v for k, v in state_dict.items()}
+        model.load_state_dict(state_dict)
         if "optimizer_state_dict" in ckpt:
             optimizer.load_state_dict(ckpt["optimizer_state_dict"])
         step = ckpt.get("step", 0)
@@ -271,7 +273,7 @@ def train(args):
             torch.save(
                 {
                     "step": step,
-                    "model_state_dict": model.state_dict(),
+                    "model_state_dict": {k.replace("_orig_mod.", ""): v for k, v in model.state_dict().items()},
                     "optimizer_state_dict": optimizer.state_dict(),
                     "loss": loss.item(),
                 },
@@ -281,7 +283,7 @@ def train(args):
 
     # Save final
     final_path = checkpoint_dir / "best.pt"
-    torch.save({"model_state_dict": model.state_dict(), "step": step}, final_path)
+    torch.save({"model_state_dict": {k.replace("_orig_mod.", ""): v for k, v in model.state_dict().items()}, "step": step}, final_path)
     print(f"Training complete. Final model saved to {final_path}")
     logger.close()
 
