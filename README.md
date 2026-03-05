@@ -19,7 +19,7 @@ This repository contains the **training pipeline only**. Deployment
 
 ## Model Architecture
 
-~30M parameter BERT-style encoder, implemented from scratch in PyTorch.
+~32M parameter BERT-style encoder, implemented from scratch in PyTorch.
 
 | Parameter        | Value |
 |------------------|-------|
@@ -31,7 +31,7 @@ This repository contains the **training pipeline only**. Deployment
 | Vocab size       | 32000 |
 
 Components: RMSNorm, RoPE positional embeddings, SwiGLU FFN,
-tied input/output embeddings, bidirectional attention.
+tied input/output embeddings, bidirectional attention, torch.compile.
 
 ## Training — Two Phases
 
@@ -94,6 +94,25 @@ make finetune
 make eval
 ```
 
+## Monitoring Training
+
+Training logs metrics to CSV and TensorBoard:
+
+```bash
+# Live dashboard (auto-refreshing matplotlib)
+PYTHONPATH=. python tools/dashboard.py --watch
+
+# Export snapshot to PNG
+PYTHONPATH=. python tools/dashboard.py --export training.png
+
+# TensorBoard (includes sample predictions)
+tensorboard --logdir checkpoints/pretrain/logs/tensorboard
+```
+
+Sample predictions are logged every 5000 steps to
+`checkpoints/pretrain/logs/samples.log`, showing masked tokens
+vs model predictions to track learning progress.
+
 ## Target Metrics
 
 | Metric              | Target |
@@ -104,7 +123,8 @@ make eval
 
 ## Hardware
 
-RTX 3090 (24GB VRAM). Phase 1: ~3-5 days. Phase 2: ~1-2 days.
+RTX 3090 (24GB VRAM). Phase 1: ~3 days. Phase 2: ~1-2 days.
+~17K tokens/sec with torch.compile, batch_size=128.
 
 ## License
 

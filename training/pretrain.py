@@ -31,14 +31,17 @@ PRETRAIN_CONFIG = {
 
 
 class TrainingLogger:
-    """Log metrics to CSV and optionally TensorBoard."""
+    """Log metrics and sample predictions to CSV, text log, and TensorBoard."""
 
     def __init__(self, log_dir: Path):
         log_dir.mkdir(parents=True, exist_ok=True)
         self.csv_path = log_dir / "metrics.csv"
+        self.samples_path = log_dir / "samples.log"
         self.csv_file = open(self.csv_path, "w", newline="")
         self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(["step", "loss", "lr", "tokens_per_sec", "elapsed_sec"])
+
+        self.samples_file = open(self.samples_path, "w")
 
         self.tb_writer = None
         try:
@@ -56,10 +59,101 @@ class TrainingLogger:
             self.tb_writer.add_scalar("train/lr", lr, step)
             self.tb_writer.add_scalar("train/tokens_per_sec", tokens_per_sec, step)
 
+    def log_samples(self, step: int, samples: list[dict]):
+        """Log sample predictions to text file and TensorBoard."""
+        lines = [f"\n{'='*60}", f"Step {step} — Sample Predictions", f"{'='*60}"]
+        tb_text = ""
+        for i, s in enumerate(samples):
+            lines.append(f"\n  Input:    {s['input']}")
+            lines.append(f"  Masked:   {s['masked']}")
+            lines.append(f"  Predict:  {s['predicted']}")
+            lines.append(f"  Actual:   {s['actual']}")
+            correct = sum(p == a for p, a in zip(s['pred_tokens'], s['actual_tokens']))
+            total = len(s['actual_tokens'])
+            lines.append(f"  Accuracy: {correct}/{total}")
+            tb_text += f"**Sample {i+1}** ({correct}/{total} correct)  \n"
+            tb_text += f"Input: `{s['input']}`  \n"
+            tb_text += f"Predict: `{s['predicted']}`  \n"
+            tb_text += f"Actual: `{s['actual']}`  \n\n"
+
+        text = "\n".join(lines)
+        print(text)
+        self.samples_file.write(text + "\n")
+        self.samples_file.flush()
+
+        if self.tb_writer:
+            self.tb_writer.add_text("samples/predictions", tb_text, step)
+
     def close(self):
         self.csv_file.close()
+        self.samples_file.close()
         if self.tb_writer:
             self.tb_writer.close()
+
+
+def generate_mlm_samples(model, batch, sp, device, n=3):
+    """Generate sample MLM predictions for logging."""
+    model.eval()
+    mask_id = sp.PieceToId("[MASK]")
+    samples = []
+
+    with torch.no_grad(), torch.amp.autocast("cuda"):
+        logits = model(batch["input_ids"].to(device), batch["attention_mask"].to(device))
+        preds = logits.argmax(dim=-1)
+
+    for i in range(min(n, batch["input_ids"].size(0))):
+        input_ids = batch["input_ids"][i].tolist()
+        label_ids = batch["labels"][i].tolist()
+        pred_ids = preds[i].tolist()
+
+        # Find masked positions
+        masked_positions = [j for j, l in enumerate(label_ids) if l != -100]
+        if not masked_positions:
+            continue
+
+        # Truncate to actual content (no padding)
+        seq_len = batch["attention_mask"][i].sum().item()
+        input_ids = input_ids[:seq_len]
+
+        # Build display strings
+        input_text = sp.Decode(input_ids)
+
+        # Show what was masked vs predicted vs actual
+        pred_tokens = [sp.IdToPiece(pred_ids[j]) for j in masked_positions if j < seq_len]
+        actual_tokens = [sp.IdToPiece(label_ids[j]) for j in masked_positions if j < seq_len]
+
+        # Build masked view (show [MASK] positions)
+        display_ids = list(input_ids)
+        for j in masked_positions:
+            if j < seq_len:
+                display_ids[j] = mask_id
+        masked_text = sp.Decode(display_ids)
+
+        # Build predicted view (fill in predictions)
+        filled_ids = list(input_ids)
+        for j in masked_positions:
+            if j < seq_len:
+                filled_ids[j] = pred_ids[j]
+        predicted_text = sp.Decode(filled_ids)
+
+        # Build actual view (fill in actuals)
+        actual_ids = list(input_ids)
+        for j in masked_positions:
+            if j < seq_len:
+                actual_ids[j] = label_ids[j]
+        actual_text = sp.Decode(actual_ids)
+
+        samples.append({
+            "input": input_text[:120],
+            "masked": masked_text[:120],
+            "predicted": predicted_text[:120],
+            "actual": actual_text[:120],
+            "pred_tokens": pred_tokens,
+            "actual_tokens": actual_tokens,
+        })
+
+    model.train()
+    return samples
 
 
 def train(args):
@@ -68,6 +162,10 @@ def train(args):
 
     model = NeuralSpellModel().to(device)
     print(f"Parameters: {model.count_parameters():,}")
+
+    if hasattr(torch, "compile"):
+        print("Compiling model with torch.compile...")
+        model = torch.compile(model)
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
@@ -95,6 +193,11 @@ def train(args):
         num_workers=4,
         pin_memory=True,
     )
+
+    # Load tokenizer for sample decoding
+    import sentencepiece as spm
+    sp = spm.SentencePieceProcessor()
+    sp.Load(str(args.tokenizer))
 
     scaler = torch.amp.GradScaler("cuda", enabled=PRETRAIN_CONFIG["fp16"])
     checkpoint_dir = Path(args.checkpoint_dir)
@@ -157,6 +260,11 @@ def train(args):
             print(f"Step {step:>6d} | Loss: {avg_loss:.4f} | LR: {lr:.2e} | tok/s: {tokens_per_sec:,.0f} | {elapsed/3600:.1f}h")
             logger.log(step, avg_loss, lr, tokens_per_sec, elapsed)
             running_loss = 0.0
+
+        if step % PRETRAIN_CONFIG["eval_interval"] == 0:
+            samples = generate_mlm_samples(model, batch, sp, device, n=3)
+            if samples:
+                logger.log_samples(step, samples)
 
         if step % PRETRAIN_CONFIG["save_interval"] == 0:
             ckpt_path = checkpoint_dir / f"step_{step}.pt"
