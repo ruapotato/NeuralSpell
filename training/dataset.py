@@ -119,8 +119,14 @@ class MLMDataset(IterableDataset):
 class CorrectionDataset(IterableDataset):
     """Correction dataset for Phase 2 fine-tuning.
 
-    Generates (corrupted, clean) sentence pairs on-the-fly using
-    the corruption engine. Loss is computed at ALL positions.
+    Strategy: corrupt at the character level, then tokenize both.
+    Only use pairs where corrupted and clean tokenize to the same length
+    (most character-level corruptions preserve token count).
+    When lengths differ, skip the pair — this is cheap since we have
+    250M sentences to draw from.
+
+    Labels = clean token IDs at every position. The model learns to
+    map corrupted input tokens back to clean output tokens.
     """
 
     def __init__(
@@ -129,12 +135,10 @@ class CorrectionDataset(IterableDataset):
         tokenizer_path: Path,
         corruption_engine,
         max_seq_length: int = 256,
-        corruption_rate: float = 0.15,
         seed: int = 42,
     ):
         self.data_dir = data_dir
         self.max_seq_length = max_seq_length
-        self.corruption_rate = corruption_rate
         self.engine = corruption_engine
         self.seed = seed
 
@@ -173,23 +177,38 @@ class CorrectionDataset(IterableDataset):
             rate = rng.uniform(0.05, 0.30)
             corrupted = self.engine.corrupt_sentence(line, rate)
 
-            input_ids = self.sp.Encode(corrupted)
-            target_ids = self.sp.Encode(line)
+            clean_ids = self.sp.Encode(line)
+            corrupt_ids = self.sp.Encode(corrupted)
 
-            if len(input_ids) < 5 or len(target_ids) < 5:
+            if len(clean_ids) < 5:
                 continue
 
-            input_ids = input_ids[: self.max_seq_length]
-            target_ids = target_ids[: self.max_seq_length]
+            # Only use pairs where tokenization length matches.
+            # Character-level corruptions (typos, case changes, doubled
+            # letters) usually preserve token count. Length-changing
+            # corruptions (missing spaces, homophones) sometimes don't —
+            # we skip those pairs and rely on the abundance of data.
+            if len(corrupt_ids) != len(clean_ids):
+                # Fallback: use clean as both input and target (identity)
+                # with small probability, to teach "don't change correct text"
+                if rng.random() < 0.1:
+                    corrupt_ids = list(clean_ids)
+                else:
+                    continue
 
-            pad_len_in = self.max_seq_length - len(input_ids)
-            pad_len_tgt = self.max_seq_length - len(target_ids)
-            attention_mask = [1] * len(input_ids) + [0] * pad_len_in
-            input_ids = input_ids + [0] * pad_len_in
-            target_ids = target_ids + [-100] * pad_len_tgt
+            # Truncate
+            max_len = self.max_seq_length
+            corrupt_ids = corrupt_ids[:max_len]
+            clean_ids = clean_ids[:max_len]
+
+            seq_len = len(corrupt_ids)
+            pad_len = max_len - seq_len
+            attention_mask = [1] * seq_len + [0] * pad_len
+            input_ids = corrupt_ids + [0] * pad_len
+            labels = clean_ids + [-100] * pad_len
 
             yield {
                 "input_ids": torch.tensor(input_ids, dtype=torch.long),
                 "attention_mask": torch.tensor(attention_mask, dtype=torch.long),
-                "labels": torch.tensor(target_ids, dtype=torch.long),
+                "labels": torch.tensor(labels, dtype=torch.long),
             }

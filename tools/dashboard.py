@@ -23,7 +23,7 @@ except ImportError:
 
 def read_metrics(csv_path: Path) -> dict[str, list]:
     """Read metrics CSV into column lists."""
-    data: dict[str, list] = {"step": [], "loss": [], "lr": [], "tokens_per_sec": [], "elapsed_sec": []}
+    data: dict[str, list] = {"step": [], "loss": [], "lr": [], "tokens_per_sec": [], "elapsed_sec": [], "token_accuracy": []}
     with open(csv_path, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -32,6 +32,8 @@ def read_metrics(csv_path: Path) -> dict[str, list]:
             data["lr"].append(float(row["lr"]))
             data["tokens_per_sec"].append(float(row["tokens_per_sec"]))
             data["elapsed_sec"].append(float(row["elapsed_sec"]))
+            if "token_accuracy" in row and row["token_accuracy"]:
+                data["token_accuracy"].append(float(row["token_accuracy"]))
     return data
 
 
@@ -86,10 +88,20 @@ def plot_dashboard(data: dict[str, list], title: str = "NeuralSpell Training", e
         ax.axhline(y=avg_tps, color="#4CAF50", linestyle="--", alpha=0.5, label=f"avg: {avg_tps:,.0f}")
         ax.legend()
 
-    # Loss (log scale) + ETA
+    # Bottom-right: Token Accuracy (Phase 2) or Loss log scale (Phase 1)
     ax = axes[1, 1]
-    ax.plot(steps, data["loss"], color="#9C27B0", linewidth=1.5)
-    ax.set_xlabel("Step")
+    if data["token_accuracy"]:
+        ax.plot(steps[:len(data["token_accuracy"])], data["token_accuracy"], color="#E91E63", linewidth=1.5)
+        ax.set_xlabel("Step")
+        ax.set_ylabel("Token Accuracy")
+        ax.set_title("Token-level Accuracy")
+        ax.grid(True, alpha=0.3)
+        if data["token_accuracy"]:
+            ax.annotate(f'{data["token_accuracy"][-1]:.3f}', xy=(steps[len(data["token_accuracy"])-1], data["token_accuracy"][-1]),
+                         fontsize=10, color="#E91E63", fontweight="bold")
+    else:
+        ax.plot(steps, data["loss"], color="#9C27B0", linewidth=1.5)
+        ax.set_xlabel("Step")
     ax.set_ylabel("Loss (log)")
     ax.set_title("Loss (log scale)")
     ax.set_yscale("log")
