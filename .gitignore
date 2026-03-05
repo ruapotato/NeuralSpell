@@ -1,0 +1,46 @@
+# Data
+data/raw/
+data/processed/
+data/cache/
+
+# Built artifacts
+phonetics/ipa_db.json
+phonetics/confusion_db.json
+phonetics/homophone_sets.json
+tokenizer/tokenizer.model
+tokenizer/tokenizer.vocab
+tokenizer/*_train_text.txt
+
+# Checkpoints
+checkpoints/
+
+# Eval results
+eval/results/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Weights & Biases
+wandb/
