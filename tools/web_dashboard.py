@@ -28,12 +28,6 @@ LOG_DIRS = {
     "finetune": CHECKPOINT_BASE / "finetune" / "logs",
 }
 
-# Also check old log locations
-OLD_LOG_DIRS = {
-    "pretrain_old": Path("logs/pretrain"),
-    "finetune_old": Path("logs/finetune"),
-}
-
 
 def read_metrics(csv_path: Path) -> list[dict]:
     """Read metrics CSV into list of row dicts."""
@@ -94,37 +88,27 @@ def find_active_phase() -> str:
     """Detect which phase is currently training based on file modification times."""
     latest_phase = "pretrain"
     latest_mtime = 0
-    for phase, log_dir in {**LOG_DIRS, **OLD_LOG_DIRS}.items():
+    for phase, log_dir in LOG_DIRS.items():
         csv_path = log_dir / "metrics.csv"
         if csv_path.exists() and csv_path.stat().st_size > 0:
             mtime = csv_path.stat().st_mtime
             if mtime > latest_mtime:
                 latest_mtime = mtime
-                latest_phase = phase.replace("_old", "")
+                latest_phase = phase
     return latest_phase
 
 
 def get_all_metrics() -> dict:
     """Get metrics for all phases."""
     result = {}
-    for phase, log_dir in {**LOG_DIRS, **OLD_LOG_DIRS}.items():
+    for phase, log_dir in LOG_DIRS.items():
         csv_path = log_dir / "metrics.csv"
         samples_path = log_dir / "samples.log"
-        phase_name = phase.replace("_old", "")
-        if phase_name not in result:
-            rows = read_metrics(csv_path)
-            if rows:
-                result[phase_name] = {
-                    "metrics": rows,
-                    "samples": read_samples(samples_path),
-                }
-        elif not result[phase_name]["metrics"]:
-            rows = read_metrics(csv_path)
-            if rows:
-                result[phase_name] = {
-                    "metrics": rows,
-                    "samples": read_samples(samples_path),
-                }
+        rows = read_metrics(csv_path)
+        result[phase] = {
+            "metrics": rows,
+            "samples": read_samples(samples_path),
+        }
     return result
 
 
