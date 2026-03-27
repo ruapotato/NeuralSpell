@@ -168,9 +168,9 @@ def generate_samples(model, batch, sp, device, max_gen_length=128, n=3):
         generated_text = sp.Decode(generated[1:])
 
         samples.append({
-            "corrupted": corrupted_text[:150],
-            "generated": generated_text[:150],
-            "original": original_text[:150],
+            "corrupted": corrupted_text[:500],
+            "generated": generated_text[:500],
+            "original": original_text[:500],
         })
         if len(samples) >= n:
             break
