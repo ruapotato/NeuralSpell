@@ -1,77 +1,38 @@
 # NeuralSpell Training Pipeline
 
-## Status: Mothballed
+## Status: Active — Encoder-Decoder Rewrite
 
-32M parameter encoder-only spell corrector experiment. Trained from scratch
-on DFSG-compliant data only. **Architecture limitations prevent this from
-reaching production quality** — see "Limitations" below.
+~385M parameter encoder-decoder spell corrector, trained from scratch on
+DFSG-compliant data only. Replaces the previous 30M encoder-only model
+which was limited to same-token-count corrections.
 
-This repository contains the training pipeline, corruption engine, and
-evaluation framework. The model and training code work, but the approach
-needs a fundamental architecture change to handle harder corrections.
-
-## What It Can Actually Do
-
-**Works well:**
-- Missing spaces: "Canthis" -> "Can this", "notto" -> "not to" (~95%)
-- Simple typos: "hir" -> "her", "hed" -> "head", "bow" -> "now" (~90%)
-- Case normalization: "THAT" -> "that", "WAS" -> "was" (~100%)
-- Missing/extra letters: "ne'fr" -> "ne'er", "uer" -> "user" (~85%)
-- Keyboard adjacency: "abd" -> "and", "das" -> "was" (~90%)
-
-**Works poorly:**
-- Homophones: "their" vs "there", "cake" vs "sake" — often fails (~30%)
-- Phonetic misspellings: "Pyton" stays "Pyton", "nessesary" — often fails
-- Rare/proper nouns: "Mrbeau" stays wrong
-- Multi-token corruptions that change tokenization — cannot fix by design
-
-## Why It's Mothballed
-
-The encoder-only architecture requires input and output to have the **same
-number of tokens**. This means:
-
-1. Any corruption that changes tokenization (most homophones, phonetic
-   misspellings, missing spaces with complex words) gets filtered out of
-   training data entirely
-2. The model literally cannot learn to fix the hardest, most important errors
-3. 32M params is too small for the vocabulary + context understanding needed
-
-**To reach production quality, this needs:**
-- Encoder-decoder architecture (~400M params) for variable-length correction
-- Trained from scratch on the same DFSG data (no pretrained model shortcuts)
-- This is a significant rewrite — the corruption engine, data pipeline, eval
-  sets, and tokenizer all carry over, but model + training loops need replacing
-
-## Training Results
-
-**Phase 1: MLM Pretraining** — 270K steps, ~14 hours on RTX 3090
-- Loss: 10.2 -> 2.4 (plateaued around step 100K)
-- Throughput: ~17-23K tokens/sec with torch.compile
-
-**Phase 2: Corruption Fine-tuning** — 135K/200K steps, ~4 hours
-- Loss: 0.24 -> 0.05
-- Token accuracy: 97.2% -> 99.2%
-- Stopped early due to architecture limitations making further training futile
+The encoder-decoder architecture removes the token-length constraint,
+enabling the model to learn all 11 corruption types including homophones,
+phonetic misspellings, and missing-space corrections that change tokenization.
 
 ## Model Architecture
 
-~32M parameter BERT-style encoder, implemented from scratch in PyTorch.
+~385M parameter encoder-decoder transformer, implemented from scratch in PyTorch.
 
 | Parameter        | Value |
 |------------------|-------|
-| Hidden size      | 512   |
-| Layers           | 6     |
-| Attention heads  | 8     |
-| FFN intermediate | 1536  |
+| Hidden size      | 1024  |
+| Encoder layers   | 12    |
+| Decoder layers   | 12    |
+| Attention heads  | 16    |
+| FFN intermediate | 4096  |
 | Max sequence len | 256   |
 | Vocab size       | 32000 |
 
 Components: RMSNorm, RoPE positional embeddings, SwiGLU FFN,
-tied input/output embeddings, bidirectional attention, torch.compile.
+three-way tied embeddings, gradient checkpointing, torch.compile.
 
-## Corruption Engine (Reusable)
+**Encoder**: bidirectional self-attention (reads corrupted input)
+**Decoder**: causal self-attention + cross-attention (generates corrected output)
 
-11 corruption types — this is the most valuable part of the project:
+## Corruption Engine
+
+11 corruption types — reused from the original pipeline:
 
 1. Keyboard adjacency (fat finger)
 2. Character transposition
@@ -111,14 +72,30 @@ make phonetics
 # Train tokenizer
 make tokenizer
 
-# Phase 1: MLM pretraining (~14 hours, RTX 3090)
+# Verify architecture (~385M params)
+make verify
+
+# Phase 1: Denoising pretraining (~5-7 days, RTX 3090)
 make pretrain
 
-# Phase 2: Corruption fine-tuning (~6 hours)
+# Phase 2: Correction fine-tuning (~2-3 days)
 make finetune
 
 # Evaluate
 make eval
+```
+
+## Resuming Training
+
+Checkpoints save full state (model, optimizer, scaler, scheduler, RNG).
+To resume after a crash:
+
+```bash
+PYTHONPATH=. python training/pretrain.py \
+    --data-dir data/processed \
+    --tokenizer tokenizer/tokenizer.model \
+    --checkpoint-dir checkpoints/pretrain \
+    --resume checkpoints/pretrain/step_50000.pt
 ```
 
 ## Monitoring Training
@@ -134,10 +111,33 @@ PYTHONPATH=. python tools/dashboard.py --export training.png
 tensorboard --logdir checkpoints/pretrain/logs/tensorboard
 ```
 
+Logged metrics per step: loss, token accuracy, learning rate,
+tokens/sec, GPU memory, gradient norm, ETA.
+
+## Training Strategy
+
+**Phase 1: Denoising Pretraining** (300K steps)
+- Corruption engine at 10-20% rate generates (corrupted, clean) pairs
+- Encoder reads corrupted text, decoder generates clean text
+- No token-length filtering — all corruption types included
+- Gradient accumulation: batch 32 x 4 = effective 128
+
+**Phase 2: Correction Fine-tuning** (100K steps)
+- Higher corruption rates (15-40%), harder examples
+- All corruption types at full weight
+- Gradient accumulation: batch 32 x 2 = effective 64
+
 ## Hardware
 
-RTX 3090 (24GB VRAM). Full pipeline: ~1 day.
-~17K tokens/sec with torch.compile, batch_size=128.
+RTX 3090 (24GB VRAM). Full pipeline: ~10 days.
+FP16 mixed precision + gradient checkpointing.
+
+## Previous Model (Mothballed)
+
+The original 30M encoder-only model is preserved in git history.
+It achieved ~90-95% on simple typos but couldn't learn homophones
+or phonetic corrections due to the same-token-count constraint.
+See commit `0fb865a` for the mothball state.
 
 ## License
 

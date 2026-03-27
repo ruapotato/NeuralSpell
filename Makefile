@@ -2,7 +2,7 @@ PYTHON ?= python3
 DATA_DIR ?= data/raw
 PROCESSED_DIR ?= data/processed
 
-.PHONY: all data phonetics tokenizer pretrain finetune eval clean
+.PHONY: all data phonetics tokenizer pretrain finetune eval test verify clean
 
 all: data phonetics tokenizer pretrain finetune eval
 
@@ -40,16 +40,20 @@ tokenizer/tokenizer.model: $(PROCESSED_DIR)
 		--output tokenizer/tokenizer.model \
 		--vocab-size 32000
 
-# Phase 1: MLM pretraining
+# Verify model architecture (~385M params)
+verify:
+	PYTHONPATH=. $(PYTHON) model/verify_params.py
+
+# Phase 1: Denoising pretraining (~5-7 days, RTX 3090)
 pretrain:
-	$(PYTHON) training/pretrain.py \
+	PYTHONPATH=. $(PYTHON) training/pretrain.py \
 		--data-dir $(PROCESSED_DIR) \
 		--tokenizer tokenizer/tokenizer.model \
 		--checkpoint-dir checkpoints/pretrain
 
-# Phase 2: Corruption fine-tuning
+# Phase 2: Correction fine-tuning (~2-3 days)
 finetune:
-	$(PYTHON) training/finetune.py \
+	PYTHONPATH=. $(PYTHON) training/finetune.py \
 		--data-dir $(PROCESSED_DIR) \
 		--tokenizer tokenizer/tokenizer.model \
 		--pretrained checkpoints/pretrain/best.pt \
@@ -57,9 +61,10 @@ finetune:
 
 # Evaluation
 eval:
-	$(PYTHON) eval/benchmarks.py \
+	PYTHONPATH=. $(PYTHON) eval/benchmarks.py \
 		--model checkpoints/finetune/best.pt \
-		--tokenizer tokenizer/tokenizer.model
+		--tokenizer tokenizer/tokenizer.model \
+		--verbose
 
 # Run corruption engine tests
 test:
