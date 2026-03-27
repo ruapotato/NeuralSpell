@@ -101,7 +101,13 @@ PYTHONPATH=. python training/pretrain.py \
 ## Monitoring Training
 
 ```bash
-# Live dashboard (auto-refreshing matplotlib)
+# Web dashboard (auto-refreshing, http://localhost:5000)
+make dashboard
+
+# Or with custom host/port
+PYTHONPATH=. python tools/web_dashboard.py --host 0.0.0.0 --port 8080
+
+# Matplotlib dashboard (local display)
 PYTHONPATH=. python tools/dashboard.py --watch
 
 # Export snapshot to PNG
