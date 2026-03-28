@@ -2,7 +2,7 @@
 
 ## Status: Active — Encoder-Decoder Rewrite
 
-**[Training Progress Dashboard](docs/dashboard.html)**
+**[Training Progress Dashboard](https://ruapotato.github.io/NeuralSpell/dashboard.html)**
 
 ~385M parameter encoder-decoder spell corrector, trained from scratch on
 DFSG-compliant data only. Replaces the previous 30M encoder-only model
