@@ -117,7 +117,15 @@ PYTHONPATH=. python tools/dashboard.py --export training.png
 
 # TensorBoard
 tensorboard --logdir checkpoints/pretrain/logs/tensorboard
+
+# Update the static GitHub Pages dashboard
+make export-dashboard
+git add docs/ && git commit -m "Update dashboard snapshot" && git push
 ```
+
+The static dashboard is published at
+https://ruapotato.github.io/NeuralSpell/dashboard.html
+and can be regenerated anytime with `make export-dashboard`.
 
 Logged metrics per step: loss, token accuracy, learning rate,
 tokens/sec, GPU memory, gradient norm, ETA.
