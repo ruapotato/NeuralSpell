@@ -2,6 +2,8 @@
 
 ## Status: Active — Encoder-Decoder Rewrite
 
+**[Training Progress Dashboard](docs/dashboard.html)**
+
 ~385M parameter encoder-decoder spell corrector, trained from scratch on
 DFSG-compliant data only. Replaces the previous 30M encoder-only model
 which was limited to same-token-count corrections.

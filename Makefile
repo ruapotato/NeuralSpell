@@ -2,7 +2,7 @@ PYTHON ?= python3
 DATA_DIR ?= data/raw
 PROCESSED_DIR ?= data/processed
 
-.PHONY: all data phonetics tokenizer pretrain finetune eval test verify dashboard clean
+.PHONY: all data phonetics tokenizer pretrain finetune eval test verify dashboard export-dashboard clean
 
 all: data phonetics tokenizer pretrain finetune eval
 
@@ -65,6 +65,10 @@ eval:
 		--model checkpoints/finetune/best.pt \
 		--tokenizer tokenizer/tokenizer.model \
 		--verbose
+
+# Export static dashboard snapshot to docs/
+export-dashboard:
+	PYTHONPATH=. $(PYTHON) tools/export_dashboard.py
 
 # Web dashboard for monitoring training
 dashboard:
