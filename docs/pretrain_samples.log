@@ -142,3 +142,83 @@ Step 45000 — Correction Samples
   Corrupted: Shr wenht to Paris in 1792 and remained during the Reign of Terror.
   Generated: She went to Paris in 1792 and remained during the Reign of Terror.
   Original:  She went to Paris in 1792 and remained during the Reign of Terror.
+
+============================================================
+Step 50000 — Correction Samples
+============================================================
+
+  Corrupted: I used to sepak to you sometimes, you must remember, about being careful."
+  Generated: I used to speak to you sometimes, you must remember, about being careful."
+  Original:  I used to speak to you sometimes, you must remember, about being careful."
+
+  Corrupted: "Ain't the Grinnell baby got _no_ home?" whimpered the hereditary enemy.
+  Generated: "Ain't the Grinnell baby got _no_ home?" whimpered the hereditary enemy.
+  Original:  "Ain't the Grinnell baby got _no_ home?" whimpered the hereditary enemy.
+
+  Corrupted: Petw's ill-defined figure slouching over it ewhile he cskimmed the syrup was grimly suggesitve of the distilpations of tsrange elixirs anr unhallowed 
+  Generated: Pete's ill-defined figure slouching over it while he skimmed the syrup was grimly suggestive of the distilpations of strange elixirs and unhallowed li
+  Original:  Pete's ill-defined figure slouching over it while he skimmed the syrup was grimly suggestive of the distillations of strange elixirs and unhallowed li
+
+============================================================
+Step 55000 — Correction Samples
+============================================================
+
+  Corrupted: 1835, April 18, French indemnigy bill passes the Chamber of Deputies.
+  Generated: 1835, April 18, French indemnity bill passes the Chamber of Deputies.
+  Original:  1835, April 18, French indemnity bill passes the Chamber of Deputies.
+
+  Corrupted: I came up to meet a boy I know, who is boing to France to-morrow.
+  Generated: I came up to meet a boy I know, who is going to France to-morrow.
+  Original:  I came up to meet a boy I know, who is going to France to-morrow.
+
+  Corrupted: At an adjourned meeting it was resolved that the convention meet atIndependence Hall, LPhiladelphia.
+  Generated: At an adjourned meeting it was resolved that the convention meet at Independence Hall, Philadelphia.
+  Original:  At an adjourned meeting it was resolved that the convention meet at Independence Hall, Philadelphia.
+
+============================================================
+Step 60000 — Correction Samples
+============================================================
+
+  Corrupted: Jerome for the diffusion of the Holy Scriptures, he spoke with the greatest praise of the splendid work of this most deserving institution, which in t
+  Generated: Jerome for the diffusion of the Holy Scriptures, he spoke with the greatest praise of the splendid work of this most deserving institution, which in t
+  Original:  Jerome for the diffusion of the Holy Scriptures, he spoke with the greatest praise of the splendid work of this most deserving institution, which in t
+
+  Corrupted: "I pray tghat your wish be granted," shemurmured, with a tender voiCe.
+  Generated: "I pray that your wish be granted," she murmured, with a tender voice.
+  Original:  "I pray that your wish be granted," she murmured, with a tender voice.
+
+  Corrupted: Oowe was represented by the Chief of Staff.
+  Generated: Lowe was represented by the Chief of Staff.
+  Original:  Lowe was represented by the Chief of Staff.
+
+============================================================
+Step 65000 — Correction Samples
+============================================================
+
+  Corrupted: Only one fragmetn of Sappho's portry, Sappho 94, contains a clear mention of female homosexual acts.
+  Generated: Only one fragment of soften's poetry, checking 94, contains a clear mention of female homosexual acts.
+  Original:  Only one fragment of Sappho's poetry, Sappho 94, contains a clear mention of female homosexual acts.
+
+  Corrupted: OffficialWebsite (Portuguese, Spanish & English)
+  Generated: Official Website (Portuguese, Spanish & English)
+  Original:  Official Website (Portuguese, Spanish & English)
+
+  Corrupted: Lanczos wotks throughout with the original matrix (and has no problwm wth it being known only umplicitly), wherews raw Householder wants to modify the
+  Generated: Lanczos works throughout with the original matrix (and has no problem with it being known only explicitly), whereas raw Householder wants to modify th
+  Original:  Lanczos works throughout with the original matrix (and has no problem with it being known only implicitly), whereas raw Householder wants to modify th
+
+============================================================
+Step 70000 — Correction Samples
+============================================================
+
+  Corrupted: Tsunoda retirfd in 2003.
+  Generated: Tsunoda retired in 2003.
+  Original:  Tsunoda retired in 2003.
+
+  Corrupted: Show trial Zelensky was arrested in August 1937.
+  Generated: Show trial Zelensky was arrested in August 1937.
+  Original:  Show trial Zelensky was arrested in August 1937.
+
+  Corrupted: markus built the portotype of the app while recruiting drivers personally on the streets of Tallinn atfer receiving a €5000 loan phrom bis familie.
+  Generated: Markus built the prototype of the app while recruiting drivers personally on the streets of Tallinn after receiving a €5000 loan from his family.
+  Original:  Markus built the prototype of the app while recruiting drivers personally on the streets of Tallinn after receiving a €5000 loan from his family.
