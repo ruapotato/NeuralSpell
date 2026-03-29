@@ -34,19 +34,36 @@ three-way tied embeddings, gradient checkpointing, torch.compile.
 
 ## Corruption Engine
 
-11 corruption types — reused from the original pipeline:
+Research-calibrated error generation based on BEA-2019, NUCLE, FCE,
+Birkbeck, and GCSE studies. Weights match real human error frequencies.
 
-1. Keyboard adjacency (fat finger)
-2. Character transposition
+**Word-level corruptions (~60%):**
+1. Keyboard adjacency / fat finger (Damerau 1964)
+2. Character deletion (most common typo at ~40% of single-edits)
 3. Character insertion
-4. Character deletion
-5. Phonetic substitution (via espeak-ng IPA)
-6. Homophone/near-homophone swaps
-7. Capitalization errors
-8. Doubled letter errors
-9. Common English suffix confusions (-ible/-able, -ie-/-ei-)
-10. Real-word grammar errors (tense, agreement, articles)
-11. Missing spaces (joined words)
+4. Character transposition
+5. Doubled letter errors
+6. Phonetic substitution (via espeak-ng IPA)
+7. Phonetic character rewrite (ph→f, ck→k, etc.)
+8. Homophone/near-homophone swaps
+9. Suffix confusions (-ible/-able, -ie-/-ei-)
+10. Capitalization errors
+
+**Grammar corruptions (~25%, dispatched to grammar module):**
+11. Determiner/article errors — drop, insert, swap the/a/an (10-16% of human errors)
+12. Preposition confusion — in/on/at/to/for/of swaps (7-11%)
+13. Noun number — plural/singular, irregular plurals (3-8%)
+14. Verb tense — past/present, "should of" for "should have" (6-7%)
+15. Subject-verb agreement — expanded patterns (2-3%)
+16. Word form — adjective/adverb, noun/verb confusion (3-5%)
+17. Contraction errors — missing apostrophes (1-2%)
+
+**Sentence-level corruptions (~15%):**
+18. Missing words — dropped articles, prepositions, auxiliaries
+19. Extra/repeated words — "I went went to"
+20. Punctuation errors — comma, period, apostrophe
+21. Missing spaces (joined words)
+22. Split compound words — "cannot" → "can not", "inside" → "in side"
 
 ## Data Sources (DFSG-Compliant Only)
 

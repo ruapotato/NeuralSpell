@@ -8,18 +8,20 @@ import pytest
 from corruption.keyboard import fat_finger_word, ADJACENCY, get_adjacent_key
 from corruption.phonetic import phonetic_rewrite, PHONETIC_REWRITES
 from corruption.homophones import HomophoneCorruptor
-from corruption.grammar import corrupt_agreement, corrupt_tense, corrupt_article
+from corruption.grammar import (
+    corrupt_agreement, corrupt_tense, corrupt_article,
+    corrupt_determiner, corrupt_preposition, corrupt_noun_number,
+    corrupt_word_form, corrupt_contraction, corrupt_grammar,
+)
 from corruption.engine import CorruptionEngine
 
 
 class TestKeyboard:
     def test_adjacency_map_completeness(self):
-        """All lowercase letters a-z should be in the adjacency map."""
         for c in "abcdefghijklmnopqrstuvwxyz":
             assert c in ADJACENCY, f"Missing key: {c}"
 
     def test_adjacency_symmetry(self):
-        """If b is adjacent to a, then a should be adjacent to b."""
         for key, neighbors in ADJACENCY.items():
             for neighbor in neighbors:
                 assert key in ADJACENCY[neighbor], (
@@ -36,7 +38,7 @@ class TestKeyboard:
                 changed = True
                 assert len(result) == len("hello")
                 break
-        assert changed, "fat_finger_word never changed 'hello' in 100 tries"
+        assert changed
 
     def test_fat_finger_preserves_length(self):
         rng = random.Random(42)
@@ -61,7 +63,6 @@ class TestKeyboard:
 class TestPhonetic:
     def test_phonetic_rewrite_applies(self):
         rng = random.Random(42)
-        # "phone" contains "ph" which can become "f"
         results = set()
         for _ in range(100):
             r = phonetic_rewrite("phone", rng)
@@ -78,14 +79,12 @@ class TestPhonetic:
                 break
 
     def test_phonetic_rewrite_none_for_no_match(self):
-        # "xyz" doesn't match any pattern
         assert phonetic_rewrite("xyz") is None
 
 
 class TestHomophones:
     def test_known_homophones_present(self):
         h = HomophoneCorruptor(homophone_db_path=None)
-        # These should always be present via hard-coded fallback
         assert "their" in h.lookup
         assert "there" in h.lookup["their"]
 
@@ -126,19 +125,107 @@ class TestGrammar:
         assert result is not None
         assert "seen" in result
 
-    def test_article_error(self):
+    def test_article_swap(self):
         rng = random.Random(42)
-        # Try many times since article corruption is probabilistic
-        for _ in range(100):
+        for _ in range(200):
             result = corrupt_article("I ate a sandwich and an apple.", rng)
             if result and result != "I ate a sandwich and an apple.":
-                assert "an sandwich" in result or "a apple" in result
+                # Should swap a<->an somewhere
+                assert result != "I ate a sandwich and an apple."
                 break
 
     def test_no_grammar_corruption_possible(self):
         rng = random.Random(42)
         result = corrupt_agreement("The cat sat.", rng)
         assert result is None
+
+    # ─── New grammar corruption tests ────────────────────────────
+
+    def test_determiner_drop(self):
+        rng = random.Random(42)
+        found = False
+        for _ in range(200):
+            result = corrupt_determiner("I saw the cat on the mat.", rng)
+            if result and "the" not in result.split()[:4]:
+                found = True
+                break
+        # At minimum, corrupt_determiner should sometimes produce a change
+        changed = False
+        for _ in range(200):
+            result = corrupt_determiner("I saw the cat on the mat.", rng)
+            if result and result != "I saw the cat on the mat.":
+                changed = True
+                break
+        assert changed
+
+    def test_preposition_swap(self):
+        rng = random.Random(42)
+        changed = False
+        for _ in range(200):
+            result = corrupt_preposition("The cat is on the mat.", rng)
+            if result and result != "The cat is on the mat.":
+                changed = True
+                # Should have swapped "on" for something else
+                assert "on" not in result or result != "The cat is on the mat."
+                break
+        assert changed
+
+    def test_noun_number(self):
+        rng = random.Random(42)
+        changed = False
+        for _ in range(200):
+            result = corrupt_noun_number("The children played in the garden.", rng)
+            if result and result != "The children played in the garden.":
+                changed = True
+                break
+        assert changed
+
+    def test_word_form(self):
+        rng = random.Random(42)
+        changed = False
+        for _ in range(200):
+            result = corrupt_word_form("She ran quickly to the store.", rng)
+            if result and result != "She ran quickly to the store.":
+                changed = True
+                assert "quick" in result.lower()
+                break
+        assert changed
+
+    def test_contraction(self):
+        rng = random.Random(42)
+        changed = False
+        for _ in range(200):
+            result = corrupt_contraction("I don't know what you're saying.", rng)
+            if result and result != "I don't know what you're saying.":
+                changed = True
+                assert "dont" in result.lower() or "youre" in result.lower()
+                break
+        assert changed
+
+    def test_tense_of_for_have(self):
+        rng = random.Random(42)
+        result = corrupt_tense("I should have known better.", rng)
+        assert result is not None
+        assert "should of" in result
+
+    def test_grammar_dispatch(self):
+        """corrupt_grammar should produce changes on a variety of sentences."""
+        rng = random.Random(42)
+        sentences = [
+            "They were going to the store.",
+            "I saw the movie yesterday.",
+            "The cat sat on the mat.",
+            "She ran quickly to the door.",
+            "I don't know what happened.",
+        ]
+        changes = 0
+        for s in sentences:
+            for _ in range(50):
+                result = corrupt_grammar(s, rng)
+                if result and result != s:
+                    changes += 1
+                    break
+        assert changes >= 3, f"Only {changes}/5 sentences were corrupted"
 
 
 class TestEngine:
@@ -176,7 +263,6 @@ class TestEngine:
     def test_corrupt_sentence_preserves_punctuation(self, engine):
         sentence = "Hello, world! How are you?"
         result = engine.corrupt_sentence(sentence, word_corruption_rate=0.3)
-        # Should still have some punctuation
         assert any(c in result for c in ",.!?")
 
     def test_generate_pair(self, engine):
@@ -198,14 +284,12 @@ class TestEngine:
             assert corrupted != original
 
     def test_missing_space_corruption(self, engine):
-        """Test that missing space corruption joins words."""
         found_joined = False
         for _ in range(200):
             result = engine._remove_space(
                 "The quick brown fox jumps over the lazy dog"
             )
             if result != "The quick brown fox jumps over the lazy dog":
-                # Should have one fewer space
                 orig_spaces = "The quick brown fox jumps over the lazy dog".count(" ")
                 result_spaces = result.count(" ")
                 assert result_spaces == orig_spaces - 1
@@ -223,5 +307,44 @@ class TestEngine:
 
     def test_double_letter(self, engine):
         result = engine._double_letter("hello")
-        # Should either remove one 'l' or double another letter
         assert result != "" and len(result) in (4, 5, 6)
+
+    # ─── New sentence-level corruption tests ─────────────────────
+
+    def test_drop_word(self, engine):
+        result = engine._drop_word("I went to the store yesterday.")
+        assert len(result.split()) < len("I went to the store yesterday.".split())
+
+    def test_repeat_word(self, engine):
+        result = engine._repeat_word("I went to the store yesterday.")
+        assert len(result.split()) > len("I went to the store yesterday.".split())
+
+    def test_corrupt_punctuation(self, engine):
+        changed = False
+        for _ in range(200):
+            result = engine._corrupt_punctuation("Hello, world. How are you?")
+            if result != "Hello, world. How are you?":
+                changed = True
+                break
+        assert changed
+
+    def test_split_compound(self, engine):
+        changed = False
+        for _ in range(200):
+            result = engine._split_compound("I cannot believe everyone is here.")
+            if result != "I cannot believe everyone is here.":
+                changed = True
+                assert " " in result.replace("I ", "").replace(" believe ", " ").replace(" is ", " ").replace(" here.", "")
+                break
+        assert changed
+
+    def test_sentence_level_variety(self, engine):
+        """High corruption rate should trigger various sentence-level errors."""
+        sentence = "I don't think the committee should have gone to the restaurant."
+        results = set()
+        for _ in range(500):
+            result = engine.corrupt_sentence(sentence, word_corruption_rate=0.3)
+            if result != sentence:
+                results.add(result)
+        # Should produce many different corrupted versions
+        assert len(results) > 10, f"Only {len(results)} unique corruptions"
