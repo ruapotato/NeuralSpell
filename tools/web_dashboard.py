@@ -164,13 +164,22 @@ DASHBOARD_HTML = """
     margin-bottom: 8px; font-family: "JetBrains Mono", "Fira Code", monospace; font-size: 13px;
   }
   .sample .label { font-size: 11px; color: #8b949e; text-transform: uppercase; margin-bottom: 2px; }
-  .sample .corrupted { color: #f85149; }
-  .sample .generated { color: #3fb950; }
-  .sample .original { color: #58a6ff; }
   .sample .step-badge {
     float: right; background: #30363d; padding: 2px 8px; border-radius: 10px;
     font-size: 11px; color: #8b949e;
   }
+  .sample .score-badge {
+    display: inline-block; background: #30363d; padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; margin-left: 8px;
+  }
+  .sample .score-badge.good { color: #3fb950; }
+  .sample .score-badge.partial { color: #d29922; }
+  .sample .score-badge.bad { color: #f85149; }
+  .w-ok { color: #c9d1d9; }
+  .w-err { color: #f85149; text-decoration: underline; text-decoration-style: wavy; text-underline-offset: 3px; }
+  .w-fixed { color: #3fb950; font-weight: 600; }
+  .w-missed { color: #f85149; font-weight: 600; }
+  .w-broken { color: #d29922; font-weight: 600; text-decoration: underline; text-decoration-style: wavy; text-underline-offset: 3px; }
   .phase-hidden { display: none; }
   @media (max-width: 768px) { .grid, .grid-3 { grid-template-columns: 1fr; } }
 </style>
@@ -300,27 +309,113 @@ function updateStats(metrics) {
   `;
 }
 
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Word-level diff: align words using LCS then classify each
+function diffWords(corrupted, original, generated) {
+  const cw = corrupted.split(/\s+/).filter(Boolean);
+  const ow = original.split(/\s+/).filter(Boolean);
+  const gw = generated.split(/\s+/).filter(Boolean);
+
+  // LCS-based alignment between two word arrays
+  function align(a, b) {
+    const m = a.length, n = b.length;
+    const dp = Array.from({length: m+1}, () => new Uint16Array(n+1));
+    for (let i=1; i<=m; i++)
+      for (let j=1; j<=n; j++)
+        dp[i][j] = a[i-1].toLowerCase() === b[j-1].toLowerCase()
+          ? dp[i-1][j-1]+1
+          : Math.max(dp[i-1][j], dp[i][j-1]);
+    // Backtrack to get alignment pairs [ai, bi] or [ai, -1] or [-1, bi]
+    const pairs = [];
+    let i=m, j=n;
+    while (i>0 || j>0) {
+      if (i>0 && j>0 && a[i-1].toLowerCase() === b[j-1].toLowerCase()) {
+        pairs.push([i-1, j-1]);
+        i--; j--;
+      } else if (j>0 && (i===0 || dp[i][j-1] >= dp[i-1][j])) {
+        pairs.push([-1, j-1]);
+        j--;
+      } else {
+        pairs.push([i-1, -1]);
+        i--;
+      }
+    }
+    return pairs.reverse();
+  }
+
+  // Align corrupted↔original to find which words were errors
+  const co = align(cw, ow);
+  const errIndicesOrig = new Set();
+  co.forEach(([ci, oi]) => {
+    if (ci === -1 || oi === -1) { if (oi >= 0) errIndicesOrig.add(oi); }
+    else if (cw[ci] !== ow[oi]) errIndicesOrig.add(oi);
+  });
+
+  // Align generated↔original to see what the model got right
+  const go = align(gw, ow);
+  let fixed = 0, missed = 0, broken = 0, totalErrs = errIndicesOrig.size;
+
+  // Build highlighted corrupted line
+  const corrHtml = co.map(([ci, oi]) => {
+    if (ci === -1) return ''; // word only in original (deleted in corrupted)
+    const w = escapeHtml(cw[ci]);
+    if (oi === -1) return `<span class="w-err">${w}</span>`;
+    return cw[ci] !== ow[oi] ? `<span class="w-err">${w}</span>` : `<span class="w-ok">${w}</span>`;
+  }).filter(Boolean).join(' ');
+
+  // Build highlighted generated line
+  const genHtml = go.map(([gi, oi]) => {
+    if (gi === -1) return ''; // word only in original (model missed it entirely)
+    const w = escapeHtml(gw[gi]);
+    if (oi === -1) { broken++; return `<span class="w-broken">${w}</span>`; }
+    const wasErr = errIndicesOrig.has(oi);
+    const isCorrect = gw[gi].toLowerCase() === ow[oi].toLowerCase();
+    if (wasErr && isCorrect) { fixed++; return `<span class="w-fixed">${w}</span>`; }
+    if (wasErr && !isCorrect) { missed++; return `<span class="w-missed">${w}</span>`; }
+    if (!wasErr && !isCorrect) { broken++; return `<span class="w-broken">${w}</span>`; }
+    return `<span class="w-ok">${w}</span>`;
+  }).filter(Boolean).join(' ');
+
+  // Count missed from alignment gaps too
+  go.forEach(([gi, oi]) => {
+    if (gi === -1 && oi >= 0 && errIndicesOrig.has(oi)) missed++;
+  });
+
+  // Score
+  const scorePct = totalErrs > 0 ? Math.round(fixed / totalErrs * 100) : 100;
+  const scoreClass = scorePct >= 80 ? 'good' : scorePct >= 40 ? 'partial' : 'bad';
+  const scoreHtml = totalErrs > 0
+    ? `<span class="score-badge ${scoreClass}">${fixed}/${totalErrs} fixed (${scorePct}%)</span>`
+    : `<span class="score-badge good">no errors</span>`;
+
+  // Original line — just plain
+  const origHtml = ow.map(w => escapeHtml(w)).join(' ');
+
+  return { corrHtml, genHtml, origHtml, scoreHtml };
+}
+
 function updateSamples(samples) {
   const el = document.getElementById('samples');
   if (!samples || !samples.length) {
     el.innerHTML = '<div style="color:#8b949e;padding:12px;">No samples yet. Samples appear every few thousand steps.</div>';
     return;
   }
-  el.innerHTML = samples.map(s => `
+  el.innerHTML = samples.map(s => {
+    const d = diffWords(s.corrupted, s.original, s.generated);
+    return `
     <div class="sample">
       ${s.step ? '<span class="step-badge">Step ' + s.step.toLocaleString() + '</span>' : ''}
       <div class="label">Corrupted</div>
-      <div class="corrupted">${escapeHtml(s.corrupted)}</div>
-      <div class="label" style="margin-top:6px">Generated</div>
-      <div class="generated">${escapeHtml(s.generated)}</div>
+      <div>${d.corrHtml}</div>
+      <div class="label" style="margin-top:6px">Generated ${d.scoreHtml}</div>
+      <div>${d.genHtml}</div>
       <div class="label" style="margin-top:6px">Original</div>
-      <div class="original">${escapeHtml(s.original)}</div>
-    </div>
-  `).join('');
-}
-
-function escapeHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      <div style="color:#8b949e">${d.origHtml}</div>
+    </div>`;
+  }).join('');
 }
 
 function switchPhase(phase) {
