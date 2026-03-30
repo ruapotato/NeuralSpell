@@ -1,12 +1,21 @@
 # NeuralSpell Training Pipeline
 
-## Status: Active — Encoder-Decoder Rewrite
+## Status: Training — Step 96K / 300K (32%)
 
 **[Training Progress Dashboard](https://ruapotato.github.io/NeuralSpell/dashboard.html)**
 
 ~385M parameter encoder-decoder spell corrector, trained from scratch on
-DFSG-compliant data only. Replaces the previous 30M encoder-only model
-which was limited to same-token-count corrections.
+DFSG-compliant data only. Corruption engine upgraded to 22 error types
+at step 80K, calibrated against real human error research (BEA-2019,
+NUCLE, Birkbeck).
+
+**JFLEG benchmark (real human errors, 100 sentences):**
+
+| System | Params | Word Accuracy | Perfect Sentences |
+|--------|--------|---------------|-------------------|
+| aspell | dict | 88.0% | 23% |
+| **NeuralSpell (step 90K)** | 385M | 86.9% | **26%** |
+| BART-base (oliverguhr) | 139M | 64.8% | 4% |
 
 The encoder-decoder architecture removes the token-length constraint,
 enabling the model to learn all 11 corruption types including homophones,
