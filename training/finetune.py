@@ -216,9 +216,12 @@ def get_rng_state():
 def set_rng_state(state):
     random.setstate(state["python"])
     np.random.set_state(state["numpy"])
-    torch.random.set_rng_state(state["torch"])
+    torch.random.set_rng_state(state["torch"].cpu())
     if state.get("cuda") is not None and torch.cuda.is_available():
-        torch.cuda.set_rng_state(state["cuda"])
+        cuda_state = state["cuda"]
+        if hasattr(cuda_state, "cpu"):
+            cuda_state = cuda_state.cpu()
+        torch.cuda.set_rng_state(cuda_state)
 
 
 def train(args):
