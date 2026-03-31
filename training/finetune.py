@@ -29,7 +29,7 @@ from training.scheduler import WSDScheduler
 FINETUNE_CONFIG = {
     "lr": 3e-5,
     "warmup_steps": 1000,
-    "total_steps": 100000,
+    "total_steps": 50000,
     "batch_size": 32,
     "gradient_accumulation_steps": 2,  # effective batch = 64
     "seq_length": 256,
