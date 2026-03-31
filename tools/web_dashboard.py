@@ -295,8 +295,26 @@ function updateStats(metrics) {
   const loss = (latest.loss || 0).toFixed(4);
   const acc = latest.token_accuracy ? (latest.token_accuracy * 100).toFixed(1) + '%' : '—';
   const tps = latest.tokens_per_sec ? Math.round(latest.tokens_per_sec).toLocaleString() : '—';
-  const elapsed = latest.elapsed_sec ? (latest.elapsed_sec / 3600).toFixed(1) + 'h' : '—';
-  const eta = (step > 0 && latest.elapsed_sec) ? (((totalSteps - step) * latest.elapsed_sec / step) / 3600).toFixed(1) + 'h' : '—';
+  // Sum all elapsed_sec from metrics to get true wall time across restarts
+  const totalElapsed = metrics.reduce((sum, r, i) => {
+    if (i === 0) return r.elapsed_sec || 0;
+    const prev = metrics[i-1].elapsed_sec || 0;
+    const curr = r.elapsed_sec || 0;
+    // Detect restart: elapsed dropped (new run)
+    return curr < prev ? sum + curr : sum + (curr - prev);
+  }, 0);
+  const elapsed = totalElapsed > 0 ? (totalElapsed / 3600).toFixed(1) + 'h' : '—';
+  // ETA from recent sec/step rate (last two log entries)
+  let eta = '—';
+  if (metrics.length >= 2) {
+    const prev = metrics[metrics.length - 2];
+    const ds = latest.step - prev.step;
+    const dt = (latest.elapsed_sec || 0) - (prev.elapsed_sec || 0);
+    if (ds > 0 && dt > 0) {
+      const secPerStep = dt / ds;
+      eta = ((totalSteps - step) * secPerStep / 3600).toFixed(1) + 'h';
+    }
+  }
   const gpu = latest.gpu_mem_gb ? latest.gpu_mem_gb.toFixed(1) + ' GB' : '—';
 
   el.innerHTML = `
