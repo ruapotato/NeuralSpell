@@ -86,7 +86,7 @@ def generate_html(data: dict) -> str:
     pretrain = data.get("pretrain", {}).get("metrics", [])
     latest = pretrain[-1] if pretrain else {}
     step = latest.get("step", 0)
-    total = 300000
+    total = 150000
     loss = latest.get("loss", 0)
     acc = latest.get("token_accuracy", 0)
     elapsed_h = latest.get("elapsed_sec", 0) / 3600
@@ -252,7 +252,7 @@ function updateStats(metrics) {{
   }}
   const latest = metrics[metrics.length - 1];
   const step = latest.step || 0;
-  const totalSteps = currentPhase === 'pretrain' ? 300000 : 100000;
+  const totalSteps = currentPhase === 'pretrain' ? 150000 : 50000;
   const pct = ((step / totalSteps) * 100).toFixed(1);
   const loss = (latest.loss || 0).toFixed(4);
   const acc = latest.token_accuracy ? (latest.token_accuracy * 100).toFixed(1) + '%' : '&mdash;';
