@@ -337,6 +337,14 @@ function diffWords(corrupted, original, generated) {
   const ow = original.split(/\s+/).filter(Boolean);
   const gw = generated.split(/\s+/).filter(Boolean);
 
+  // Empty generation = total failure
+  if (gw.length === 0) {
+    const corrHtml = cw.map(w => `<span class="w-err">${escapeHtml(w)}</span>`).join(' ');
+    const origHtml = ow.map(w => escapeHtml(w)).join(' ');
+    return { corrHtml, genHtml: '<span class="w-missed">(empty output)</span>', origHtml,
+      scoreHtml: '<span class="score-badge bad">0/0 — empty generation</span>' };
+  }
+
   // LCS-based alignment between two word arrays
   function align(a, b) {
     const m = a.length, n = b.length;

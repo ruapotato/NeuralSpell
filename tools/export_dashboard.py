@@ -290,6 +290,12 @@ function diffWords(corrupted, original, generated) {{
   const cw = corrupted.split(/\s+/).filter(Boolean);
   const ow = original.split(/\s+/).filter(Boolean);
   const gw = generated.split(/\s+/).filter(Boolean);
+  if (gw.length === 0) {{
+    const corrHtml = cw.map(w => `<span class="w-err">${{escapeHtml(w)}}</span>`).join(' ');
+    const origHtml = ow.map(w => escapeHtml(w)).join(' ');
+    return {{ corrHtml, genHtml: '<span class="w-missed">(empty output)</span>', origHtml,
+      scoreHtml: '<span class="score-badge bad">0/0 — empty generation</span>' }};
+  }}
   function align(a, b) {{
     const m = a.length, n = b.length;
     const dp = Array.from({{length: m+1}}, () => new Uint16Array(n+1));
