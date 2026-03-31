@@ -149,7 +149,7 @@ class CorrectionDataset(IterableDataset):
         corruption_engine: CorruptionEngine,
         max_seq_length: int = 256,
         corruption_rate_min: float = 0.15,
-        corruption_rate_max: float = 0.40,
+        corruption_rate_max: float = 0.66,
         identity_rate: float = 0.05,
         seed: int = 42,
     ):
