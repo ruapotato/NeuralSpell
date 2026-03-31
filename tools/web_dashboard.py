@@ -69,17 +69,34 @@ def read_samples(samples_path: Path, last_n: int = 5) -> list[dict]:
         if step_match:
             current_step = int(step_match.group(1))
             continue
-        # Parse sample entries
-        corrupted = re.findall(r"Corrupted:\s*(.+)", block)
-        generated = re.findall(r"(?:Generated|Predicted):\s*(.+)", block)
-        original = re.findall(r"Original:\s*(.+)", block)
-        for c, g, o in zip(corrupted, generated, original):
-            samples.append({
-                "step": current_step,
-                "corrupted": c.strip(),
-                "generated": g.strip(),
-                "original": o.strip(),
-            })
+        # Parse sample entries line by line to handle empty Generated
+        lines = block.split("\n")
+        i = 0
+        while i < len(lines):
+            cm = re.match(r"\s*Corrupted:\s*(.*)", lines[i])
+            if cm:
+                c = cm.group(1).strip()
+                g = ""
+                o = ""
+                # Next line should be Generated
+                if i + 1 < len(lines):
+                    gm = re.match(r"\s*(?:Generated|Predicted):\s*(.*)", lines[i + 1])
+                    if gm:
+                        g = gm.group(1).strip()
+                        # Next should be Original
+                        if i + 2 < len(lines):
+                            om = re.match(r"\s*Original:\s*(.*)", lines[i + 2])
+                            if om:
+                                o = om.group(1).strip()
+                                i += 3
+                                samples.append({
+                                    "step": current_step,
+                                    "corrupted": c,
+                                    "generated": g,
+                                    "original": o,
+                                })
+                                continue
+            i += 1
 
     return samples[-last_n:]
 
