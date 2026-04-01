@@ -31,7 +31,7 @@ from training.scheduler import WSDScheduler
 PRETRAIN_CONFIG = {
     "lr": 3e-4,
     "warmup_steps": 5000,
-    "total_steps": 150000,
+    "total_steps": 170000,
     "batch_size": 32,
     "gradient_accumulation_steps": 4,  # effective batch = 128
     "seq_length": 256,

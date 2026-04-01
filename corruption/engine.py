@@ -144,8 +144,12 @@ class CorruptionEngine:
                 return ctype
         return self._word_probs[-1][0]
 
-    def corrupt_word(self, word: str) -> str:
-        """Apply a random corruption to a single word."""
+    def corrupt_word(self, word: str, multi_edit: bool = False) -> str:
+        """Apply a random corruption to a single word.
+
+        If multi_edit is True, apply 2-3 corruptions to simulate severe
+        misspellings (accounts for ~50% of BEA-60K failures).
+        """
         if len(word) < 3:
             return word
 
@@ -158,6 +162,16 @@ class CorruptionEngine:
                     result = self._apply_word_corruption(word, backup_type)
                     if result != word:
                         break
+
+        # Multi-edit: stack 1-2 more corruptions on top
+        if multi_edit and result != word and len(result) >= 3:
+            extra = self.rng.randint(1, 2)
+            for _ in range(extra):
+                ctype2 = self._pick_word_corruption()
+                result2 = self._apply_word_corruption(result, ctype2)
+                if result2 != result and len(result2) >= 2:
+                    result = result2
+
         return result
 
     def _apply_word_corruption(self, word: str, ctype: str) -> str:
@@ -405,8 +419,25 @@ class CorruptionEngine:
         """Corrupt a sentence, returning the corrupted version.
 
         Each word independently has word_corruption_rate chance of corruption.
+        ~20% of corrupted words get multi-edit (2-3 stacked corruptions) to
+        simulate severe misspellings seen in real human writing.
         Also applies sentence-level corruptions (grammar, punctuation, etc).
         """
+        # Case variation: 10% chance to convert sentence to ALL CAPS or
+        # random case before corrupting (trains the model to handle varied input)
+        case_mode = None
+        if self.rng.random() < 0.10:
+            case_choice = self.rng.randint(0, 2)
+            if case_choice == 0:
+                sentence = sentence.upper()
+                case_mode = "upper"
+            elif case_choice == 1:
+                # Random words uppercased
+                words = sentence.split()
+                words = [w.upper() if self.rng.random() < 0.3 else w for w in words]
+                sentence = " ".join(words)
+                case_mode = "mixed"
+
         tokens = re.findall(r"\S+|\s+", sentence)
         result_tokens = []
 
@@ -419,7 +450,9 @@ class CorruptionEngine:
             if match and len(match.group(1)) >= 3:
                 word, rest = match.group(1), match.group(2)
                 if self.rng.random() < word_corruption_rate:
-                    word = self.corrupt_word(word)
+                    # 20% of corruptions are multi-edit (severe misspellings)
+                    multi = self.rng.random() < 0.20
+                    word = self.corrupt_word(word, multi_edit=multi)
                 result_tokens.append(word + rest)
             else:
                 result_tokens.append(token)
