@@ -277,57 +277,148 @@ WORD_FORM_SWAPS = {
     "importance": "important", "important": "importance",
     "difference": "different",
     "appearance": "apparent",
-    # Irregular verb form confusions (BEA-60K common failures)
-    "chose": "choose", "choose": "chose", "chosen": "choosen",
-    "become": "became", "became": "become", "becomes": "becames",
-    "taken": "took", "took": "taken",
-    "written": "wrote", "wrote": "written",
-    "spoken": "spoke", "spoke": "spoken",
-    "broken": "broke", "broke": "broken",
-    "forgotten": "forgot", "forgot": "forgotten",
-    "driven": "drove", "drove": "driven",
-    "risen": "rose", "rose": "risen",
-    "fallen": "fell", "fell": "fallen",
-    "hidden": "hid", "hid": "hidden",
-    "begun": "began", "began": "begun",
-    # -ness / -ment / -tion confusions
-    "happiness": "happyness", "sadness": "sadnes",
-    "comfortable": "confortable", "comfortably": "confortably",
-    "necessary": "nessesary", "necessarily": "nessesarily",
-    "definitely": "definately", "separate": "seperate",
-    "environment": "enviroment", "government": "goverment",
-    "accommodation": "accomodation", "occurrence": "occurence",
-    "millennium": "millenium", "committee": "commitee",
-    "embarrass": "embarass", "harassment": "harasment",
-    "maintenance": "maintanence", "independence": "independance",
-    "existence": "existance", "resistance": "resistence",
-    "experience": "experiance", "audience": "audiance",
-    "fascinated": "facinated", "fascinating": "facinating",
-    "technology": "tecnology", "technique": "tecnique",
-    "demonstration": "demostration", "certificate": "certificat",
-    "mystery": "mistery", "mysteries": "misteries",
-    "passive": "pasive", "aggressive": "agressive",
-    "possession": "posession", "professional": "proffesional",
-    "recommend": "recomend", "recommendation": "recomendation",
 }
 
 
+def morphological_corrupt(word: str, rng: random.Random) -> str | None:
+    """Generate morphological errors from rules, not hard-coded lists.
+
+    Applies systematic transformations that humans make:
+    - Drop one letter from doubled consonants (ll->l, mm->m, ss->s, etc)
+    - Drop unstressed vowels from interior of word
+    - Regularize irregular past tense (add -ed)
+    - Suffix confusion (-ence/-ance, -ible/-able, -tion/-sion)
+    - Drop silent letters or unstressed syllables
+    """
+    if len(word) < 5:
+        return None
+
+    lower = word.lower()
+    result = None
+    attempts = list(range(7))
+    rng.shuffle(attempts)
+
+    for attempt in attempts:
+        if attempt == 0:
+            # Drop one letter from a doubled consonant pair
+            # "committee" -> "commitee", "million" -> "milion"
+            for i in range(len(lower) - 1):
+                if lower[i] == lower[i + 1] and lower[i] in "bcdfgklmnprstyz":
+                    result = word[:i] + word[i + 1:]
+                    break
+
+        elif attempt == 1:
+            # Drop an unstressed interior vowel
+            # "comfortable" -> "comfrtable", "different" -> "diffrent"
+            vowel_positions = [i for i in range(2, len(word) - 2)
+                              if lower[i] in "aeiou" and lower[i-1] not in "aeiou"
+                              and lower[i+1] not in "aeiou"]
+            if vowel_positions:
+                pos = rng.choice(vowel_positions)
+                result = word[:pos] + word[pos + 1:]
+
+        elif attempt == 2:
+            # Suffix confusion: swap -ence/-ance, -ent/-ant, -ible/-able
+            suffix_swaps = [
+                ("ence", "ance"), ("ance", "ence"),
+                ("ent", "ant"), ("ant", "ent"),
+                ("ible", "able"), ("able", "ible"),
+                ("tion", "sion"), ("sion", "tion"),
+                ("ious", "eous"), ("eous", "ious"),
+                ("ery", "ary"), ("ary", "ery"),
+                ("ally", "aly"), ("ely", "ly"),
+                ("ment", "mant"), ("ness", "nes"),
+            ]
+            for old_suffix, new_suffix in suffix_swaps:
+                if lower.endswith(old_suffix):
+                    base = word[:-len(old_suffix)]
+                    # Preserve case of first char of suffix
+                    if word[-len(old_suffix)].isupper():
+                        new_suffix = new_suffix[0].upper() + new_suffix[1:]
+                    result = base + new_suffix
+                    break
+
+        elif attempt == 3:
+            # Regularize irregular past: add -ed to irregular past forms
+            # "went" -> "wented", "chose" -> "chosed"
+            if lower.endswith("en") and len(lower) > 4:
+                # "chosen" -> "choosed", "written" -> "writed"
+                result = word[:-2] + "ed"
+            elif lower.endswith("e") and len(lower) > 3 and not lower.endswith("ed"):
+                result = word + "d"
+
+        elif attempt == 4:
+            # Double a consonant that shouldn't be
+            # "recomend" (wrong) is the inverse: we ADD a double
+            consonants = [i for i in range(1, len(word) - 1)
+                         if lower[i] in "bcdfgklmnprst"
+                         and lower[i] != lower[i-1] and lower[i] != lower[i+1]]
+            if consonants:
+                pos = rng.choice(consonants)
+                result = word[:pos] + word[pos] + word[pos:]
+
+        elif attempt == 5:
+            # Swap adjacent vowels: "recieve" for "receive", "beleive" for "believe"
+            for i in range(1, len(word) - 2):
+                if (lower[i] in "aeiou" and lower[i+1] in "aeiou"
+                        and lower[i] != lower[i+1]):
+                    chars = list(word)
+                    chars[i], chars[i+1] = chars[i+1], chars[i]
+                    result = "".join(chars)
+                    break
+
+        elif attempt == 6:
+            # Drop a syllable-initial consonant cluster simplification
+            # "February" -> "Febuary", "library" -> "libary"
+            clusters = ["br", "pr", "cr", "gr", "tr", "fr", "str", "spr"]
+            for cl in clusters:
+                pos = lower.find(cl, 1)  # not at start
+                if pos > 0 and pos < len(word) - len(cl):
+                    result = word[:pos] + word[pos + 1:]  # drop first char of cluster
+                    break
+
+        if result and result.lower() != lower:
+            return result
+
+    return None
+
+
 def corrupt_word_form(sentence: str, rng: random.Random) -> str | None:
-    """Swap a word with a commonly confused form (adj/adv, noun/verb)."""
+    """Swap a word form or apply morphological corruption.
+
+    First tries the lookup table (adj/adv, noun/verb swaps).
+    Falls back to rule-based morphological corruption on any 5+ char word.
+    """
     words = sentence.split()
+
+    # Try lookup-based swaps first
     candidates = []
     for i, w in enumerate(words):
         clean = re.sub(r"[^\w']", "", w).lower()
         if clean in WORD_FORM_SWAPS:
-            candidates.append(i)
+            candidates.append(("swap", i))
+
+    # Also try rule-based morphological corruption on longer words
+    for i, w in enumerate(words):
+        clean = re.sub(r"[^\w']", "", w)
+        if len(clean) >= 5 and clean.isalpha():
+            candidates.append(("morph", i))
 
     if not candidates:
         return None
 
-    idx = rng.choice(candidates)
+    action, idx = rng.choice(candidates)
     word = words[idx]
     clean = re.sub(r"([^\w']+)$", "", word)
     suffix = word[len(clean):]
+
+    if action == "morph":
+        replacement = morphological_corrupt(clean, rng)
+        if replacement:
+            words[idx] = replacement + suffix
+            return " ".join(words)
+        return None
+
     replacement = WORD_FORM_SWAPS.get(clean.lower(), clean)
     if clean[0].isupper():
         replacement = replacement.capitalize()
