@@ -488,3 +488,19 @@ Step 140000 — Correction Samples
   Corrupted: Approach phour "continuing teams" (Brisbane, Canberra, Newcastle and Auckland) to secure a 7-year commitmenrt.
   Generated: Approach four "continuing teams" (Brisbane, Canberra, Newcastle and Auckland) to secure a 7-year commitment.
   Original:  Approach four "continuing teams" (Brisbane, Canberra, Newcastle and Auckland) to secure a 7-year commitment.
+
+============================================================
+Step 145000 — Correction Samples
+============================================================
+
+  Corrupted: To initiate a plugin, you need something like this: my $plugin = Nagios::Plugin->new( shortname => $PLUGIN_NAME, # Short name of your plugin usage => $USAGE, # Your usage message cversion => $VERSION # Version number ); Then you can add your command line options thus: $plugin->add_arg("w=i", "-w <hours>\n Warning if data EXCEEDS this time", 12, 1); $plugin->add_arg("c=i", "-c <hours>\n Critical if data exceeds this time", 24, 1); $plugin->getopts(); and so on.
+  Generated: To initiate a plugin, you need something like this: my $plugin = Nagios::Plugin->new( shortname => $PLUGIN_NAME, # Short name of your plugin usage => $USAGE, # Your usage message version => $VERSION # Version number ); Then you can add your command line options thus: $plugin->add_arg("w=i", "-w <hours>\n Warning if data exceeds this time", 12, 1); $plugin->
+  Original:  To initiate a plugin, you need something like this: my $plugin = Nagios::Plugin->new( shortname => $PLUGIN_NAME, # Short name of your plugin usage => $USAGE, # Your usage message version => $VERSION # Version number ); Then you can add your command line options thus: $plugin->add_arg("w=i", "-w <hours>\n Warning if data exceeds this time", 12, 1); $plugin->add_arg("c=i", "-c <hours>\n Critical if data exceeds this time", 24, 1); $plugin->getopts(); and so on.
+
+  Corrupted: I have built a small script that provides touch screen right click context menu with length touch press in my ELAN touchscreen.
+  Generated: I have built a small script that provides touch screen right click context menu with length touch press in my ELAN touchscreen.
+  Original:  I have built a small script that provides touch screen right click context menu with long touch press in my ELAN touchscreen.
+
+  Corrupted: I will eventually use GUI design and expand this program to store data permanetly, but tor now, thks dhat I wrote.
+  Generated: I will eventually use GUI design and expand this program to store data permanently, but for now, this what I wrote.
+  Original:  I will eventually use GUI design and expand this program to store data permanently, but for now, this what I wrote.

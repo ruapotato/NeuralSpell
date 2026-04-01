@@ -166,20 +166,20 @@ tokens/sec, GPU memory, gradient norm, ETA.
 
 ## Training Strategy
 
-**Phase 1: Denoising Pretraining** (300K steps)
-- Corruption engine at 10-20% rate generates (corrupted, clean) pairs
+**Phase 1: Denoising Pretraining** (150K steps)
+- 10-20% corruption rate, all 22 error types
+- Enhanced corruption engine (grammar, determiners, prepositions) from step 80K
 - Encoder reads corrupted text, decoder generates clean text
-- No token-length filtering — all corruption types included
 - Gradient accumulation: batch 32 x 4 = effective 128
 
-**Phase 2: Correction Fine-tuning** (100K steps)
-- Higher corruption rates (15-40%), harder examples
+**Phase 2: Correction Fine-tuning** (50K steps)
+- Higher corruption rates (15-66%), harder examples
 - All corruption types at full weight
 - Gradient accumulation: batch 32 x 2 = effective 64
 
 ## Hardware
 
-RTX 3090 (24GB VRAM). Full pipeline: ~10 days.
+RTX 3090 (24GB VRAM). Full pipeline: ~6 days.
 FP16 mixed precision + gradient checkpointing.
 
 ## Previous Model (Mothballed)
