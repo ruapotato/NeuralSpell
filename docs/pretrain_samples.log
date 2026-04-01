@@ -302,3 +302,189 @@ Step 95000 — Correction Samples
   Corrupted: So you can see tgat usch activity may creatr somewhat of a problem.
   Generated: So you can see that such activity may create somewhat of a problem.
   Original:  So you can see that such activity may create somewhat of a problem.
+
+============================================================
+Step 100000 — Correction Samples
+============================================================
+
+  Corrupted: The desibn of the fuselage jncluded a height differential between ythe two seats of the cosckpit; this provided generous levels of visibility for tbe instructor in the reer seat.
+  Generated: The design of the fuselage included a height differential between the two seats of the cockpit; this provided generous levels of visibility for the instructor in the rear seat.
+  Original:  The design of the fuselage included a height differential between the two seats of the cockpit; this provided generous levels of visibility for the instructor in the rear seat.
+
+  Corrupted: Rochester's enemy Lord Halifax called for an inquiry into Rovhester's stewardship of the binances and it waq found tbat £40,000 had bern lost through mismanagement.
+  Generated: Rochester's enemy Lord Halifax called for an inquiry into Rochester's stewardship of the binances and it was found that £40,000 had been lost by mismanagement.
+  Original:  Rochester's enemy Lord Halifax called for an inquiry into Rochester's stewardship of the finances and it was found that £40,000 had been lost by mismanagement.
+
+  Corrupted: EOModeler adds support for prototype attributes znd the ability to create and store complex queries (or EOFetchSpecifications). 4.5 --; March 2000 Inhegrated XML support using IBM's alphaWorks parser.
+  Generated: EOModeler adds support for prototype attributes and the ability to create and store complex queries (or EOFetchSpecifications). 4.5 --; March 2000 Integrated XML support using IBM's alphaWorks parser.
+  Original:  EOModeler adds support for prototype attributes and the ability to create and store complex queries (or EOFetchSpecifications). 4.5 --; March 2000 Integrated XML support using IBM's alphaWorks parser.
+
+============================================================
+Step 105000 — Correction Samples
+============================================================
+
+  Corrupted: Young plants and coppice regrowth have leaves that are sessile, heart-shaped to rounnd, log and wide, arranged to opposite pakrs with stem-clasping bases and finely notched or scalloped edges.
+  Generated: Young plants and coppice regrowth have leaves that are sessile, heart-shaped to round, long and wide, arranged to opposite pairs with stem-clasping bases and finely notched or scalloped edges.
+  Original:  Young plants and coppice regrowth have leaves that are sessile, heart-shaped to round, long and wide, arranged in opposite pairs with stem-clasping bases and finely notched or scalloped edges.
+
+  Corrupted: It das designed by thr renowed American Movernist architfct Richard Neutra, ahd built from 1962 to 1966.
+  Generated: It was designed by the renowned American Modernist architect Richard Neutra, and built from 1962 to 1966.
+  Original:  It was designed by the renowned American Modernist architect Richard Neutra, and built from 1962 to 1966.
+
+  Corrupted: Madonna stated that "Crave" was one of the first songs she wrote for Madame X, but had to put on hold when she began working with other musicians in Lisbon.
+  Generated: Madonna stated that "Crave" was one of the first songs she wrote for Madame X, but had to put on hold when she began working with other musicians in Lisbon.
+  Original:  Madonna stated that "Crave" was one of the first songs she wrote for Madame X, but had to put on hold when she began working with other musicians in Lisbon.
+
+============================================================
+Step 110000 — Correction Samples
+============================================================
+
+  Corrupted: Based in London, UK, IGE is recognised by World Rugby as the representative organisation of the LGBT ande inclusive rugby commuity, up to the point they bith have signed a Memorandim of Understanding outlinibng a commitment BetWEeN tyes two organisations to work together to educate and eliminate homophobia in rugby.
+  Generated: Based in London, UK, IGE is recognised by World Rugby as the representative organisation of the LGBT and inclusive rugby community, up to the point they both have signed a Memorandum of Understanding outlining a commitment between the two organisations to work together to educate and eliminate homophobia in rugby.
+  Original:  Based in London, UK, IGR is recognised by World Rugby as the representative organisation of the LGBT and inclusive rugby community, up to the point they both have signed a Memorandum of Understanding outlining a commitment between the two organisations to work together to educate and eliminate homophobia in rugby.
+
+  Corrupted: According to Carron Ruffle, assitsant professor of religion at the Ujiversity of Torknto, even though mutʿah is Prohibited by Sunni schools of lawe, several types of impermanent marrlage exist, including misyar (ambulant) marriage and ʿurfi (customary) marriage, which gaind popularity in pxarts of tme Sunni world.
+  Generated: According to Carron Ruffle, assistant professor of religion at the University of Toronto, even though mutʿah is prohibited by Sunni schools of law, several types of impermanent marriage exist, including misyar (ambulant) marriage and ʿurfi (customary) marriage, which gains popularity in parts of the Sunni world.
+  Original:  According to Karen Ruffle, assistant professor of religion at the University of Toronto, even though mutʿah is prohibited by Sunni schools of law, several types of impermanent marriage exist, including misyar (ambulant) marriage and ʿurfi (customary) marriage, which gained popularity in parts of the Sunni world.
+
+  Corrupted: Approach four "continuing teams" (Brisbane, Canberra, Newcastle qnd Auckland) to secure a 7-year commitment.
+  Generated: Approach four "continuing teams" (Brisbane, Canberra, Newcastle and Auckland) to secure a 7-year commitment.
+  Original:  Approach four "continuing teams" (Brisbane, Canberra, Newcastle and Auckland) to secure a 7-year commitment.
+
+============================================================
+
+  Corrupted: To initiate a plugin, you kneed something like this: my $plugin = Nagios::Plugin->new( shortname => $PLUGIN_NAME, # Short name of yokur plugin usage => $USAGE, # Your usage message version => $VERSION # Version number ); Then you can add your command line options thus: $plugin->add_arg("w=i", "-w <hours>\n Warning if data exceeds this time", 12, 1); $plugin->add_arg("c=i", "-c <hours>\n Critical if data exceeds this time", 24, 1); $plugin->getopts(); and so on.
+  Generated: 
+  Original:  To initiate a plugin, you need something like this: my $plugin = Nagios::Plugin->new( shortname => $PLUGIN_NAME, # Short name of your plugin usage => $USAGE, # Your usage message version => $VERSION # Version number ); Then you can add your command line options thus: $plugin->add_arg("w=i", "-w <hours>\n Warning if data exceeds this time", 12, 1); $plugin->add_arg("c=i", "-c <hours>\n Critical if data exceeds this time", 24, 1); $plugin->getopts(); and so on.
+
+  Corrupted: I have built a small script that provieds touch screen right click context menu with long touch press in my ELAN touchzscreen.
+  Generated: 
+  Original:  I have built a small script that provides touch screen right click context menu with long touch press in my ELAN touchscreen.
+
+  Corrupted: I will eventually use GULI desiggn and expand this program to store ddata permanently, but for now, this what I wote.
+  Generated: 
+  Original:  I will eventually use GUI design and expand this program to store data permanently, but for now, this what I wrote.
+
+============================================================
+
+  Corrupted: _Thrang_, throng, busy, a crowd.
+  Generated: 
+  Original:  _Thrang_, throng, busy, a crowd.
+
+  Corrupted: And spending your time in making marks on paper!
+  Generated: 
+  Original:  And spending your time in making marks on paper!
+
+  Corrupted: The paint of the phloors was yellow and shining; yhe carppets were thick and bright; the table was set with great care; the great chimney in the upper mitchen where fhe supper was prpeared, wwas magmificent with its blazing logs.
+  Generated: 
+  Original:  The paint of the floors was yellow and shining; the carpets were thick and bright; the table was set with great care; the great chimney in the upper kitchen where the supper was prepared, was magnificent with its blazing logs.
+
+============================================================
+
+  Corrupted: 29. "An unjust sntence of conddmnation, and a miserible and undeserved banishmwnt, formerly induced Coriolanus to go and fjght Against his country; he was restrained, however, by private dutg from public parricide.
+  Generated: 
+  Original:  29. "An unjust sentence of condemnation, and a miserable and undeserved banishment, formerly induced Coriolanus to go and fight against his country; he was restrained, however, by private duty from public parricide.
+
+  Corrupted: Lucius Furius Purpureo, who had then the command of the provjnce, had, in pursuance of the decree of the senate, disbanded the army, excepting five thuosand of the allies and Latin confederacy; and had remained, with tthese troops, in the nearest district of the province about Ariminum.
+  Generated: 
+  Original:  Lucius Furius Purpureo, who had then the command of the province, had, in pursuance of the decree of the senate, disbanded the army, excepting five thousand of the allies and Latin confederacy; and had remained, with these troops, in the nearest district of the province about Ariminum.
+
+  Corrupted: She went to Pagis in 1792 and remained duding the Rane of a Terror.
+  Generated: 
+  Original:  She went to Paris in 1792 and remained during the Reign of Terror.
+
+============================================================
+Step 115000 — Correction Samples
+============================================================
+
+  Corrupted: The great amphitheatre in which the games were to atke place wass surrounded by gold and jewelled palaces for the accommodation from the princes, and wih platphorms for ghe convenience the spectators.
+  Generated: The great amphitheatre in which the games were to take place was surrounded by gold and jewelled palaces for the accommodation from the princes, and with platforms for the convenience the spectators.
+  Original:  The great amphitheatre in which the games were to take place was surrounded by gold and jewelled palaces for the accommodation of the princes, and with platforms for the convenience of the spectators.
+
+  Corrupted: The religious spirkit will be revivified because it will be in harmony with men's unquestioned scientific beliefs and their ordinary day-from-vay soclial activities.
+  Generated: The religious spirit will be revivified because it will be in harmony with men's unquestioned scientific beliefs and their ordinary day-of-day social activities.
+  Original:  The religious spirit will be revivified because it will be in harmony with men's unquestioned scientific beliefs and their ordinary day-by-day social activities.
+
+  Corrupted: When the Judge looked up again, a single prisoner stood beore him, a wounded, hawk-faced native, whose yees blazed hate and contempt.
+  Generated: When the Judge looked up again, a single prisoner stood before him, a wounded, hawk-faced native, whose eyes blazed hate and contempt.
+  Original:  When the Judge looked up again, a single prisoner stood before him, a wounded, hawk-faced native, whose eyes blazed hate and contempt.
+
+============================================================
+Step 120000 — Correction Samples
+============================================================
+
+  Corrupted: While returning to the region of Ghilwara and his capital towwn of Causla Ckheda, Devnarayan marries three princesses, one the daughrer a det (daitya), another the niece of a netherworld serpent king, and the tird the daughter of the Gurjar ruler of Ujjain-Pipalde.
+  Generated: While returning to the region of Ghilwara and his capital town of Causla Kheda, Devnarayan marries three princesses, one the daughter a det (daitya), another the niece of a netherworld serpent king, and the third the daughter of the Gurjar ruler of Ujjain-Pipalde.
+  Original:  While returning to the region of Bhilwara and his capital town of Causla Kheda, Devnarayan marries three princesses, one the daughter of a det (daitya), another the niece of a netherworld serpent king, and the third the daughter of the Gurjar ruler of Ujjain-Pipalde.
+
+  Corrupted: He gets to the location he was called to, finds the owner and some animals DEAD in a barn, but slips on the blood as he turns to leave and hits his head, knoking hom unconscous.
+  Generated: He gets to the location he was called to, finds the owner and some animals dead in a barn, but slips on the blood as he turns to leave and hits his head, knocking him unconscious.
+  Original:  He gets to the location he was called to, finds the owner and some animals dead in a barn, but slips on the blood as he turns to leave and hits his head, knocking him unconscious.
+
+  Corrupted: Sebastian by an artist of the Sienese School.
+  Generated: Sebastian by an artist of the Sienese School.
+  Original:  Sebastian by an artist of the Sienese School.
+
+============================================================
+Step 125000 — Correction Samples
+============================================================
+
+  Corrupted: He had had an hour's sleep on the sitting-room sofa.
+  Generated: He had had an hour's sleep on the sitting-room sofa.
+  Original:  He had had an hour's sleep on the sitting-room sofa.
+
+  Corrupted: Scion, bevelled, is set either in English or cleft graft, tied with raffia or with a numbered wool strip, waxed and potted in rich but light soil, moderately firmed around roots.
+  Generated: Scion, bevelled, is set either in English or cleft graft, tied with raffia or with a numbered wool strip, waxed and potted in rich but light soil, moderately formed around roots.
+  Original:  Scion, bevelled, is set either in English or cleft graft, tied with raffia or with a numbered wool strip, waxed and potted in rich but light soil, moderately firmed around roots.
+
+  Corrupted: So you can see that sucbh activity may create somewhat of a problem.
+  Generated: So you can see that such activity may create somewhat of a problem.
+  Original:  So you can see that such activity may create somewhat of a problem.
+
+============================================================
+Step 130000 — Correction Samples
+============================================================
+
+  Corrupted: The design of the fuselage included a height differential between the two seats of the cockpit; this provideds generous levels of visibility for ther instructkr in the rear sete.
+  Generated: The design of the fuselage included a height differential between the two seats of the cockpit; this provided generous levels of visibility for the instructor in the rear seat.
+  Original:  The design of the fuselage included a height differential between the two seats of the cockpit; this provided generous levels of visibility for the instructor in the rear seat.
+
+  Corrupted: Rochester's enemy Lrd Hallifax called for an inquiry into Rochester's stewardsnip of the finances and it was found that £40,000 had been lost by mismanagement.
+  Generated: Rochester's enemy Lord Hallifax called for an inquiry into Rochester's stewardship of the finances and it was found that £40,000 had been lost by mismanagement.
+  Original:  Rochester's enemy Lord Halifax called for an inquiry into Rochester's stewardship of the finances and it was found that £40,000 had been lost by mismanagement.
+
+  Corrupted: EOModeler adds support for prototype attibutes and the ability to create and store complex quries (or EOFFetchSpecifications). 4.5 --; March 2000 Intgerated XML support usng IBM's alphaWorks parser.
+  Generated: EOModeler adds support for prototype attributes and the ability to create and store complex queries (or EOFFetchSpecifications). 4.5 --; March 2000 Integrated XML support using IBM's alphaWorks parser.
+  Original:  EOModeler adds support for prototype attributes and the ability to create and store complex queries (or EOFetchSpecifications). 4.5 --; March 2000 Integrated XML support using IBM's alphaWorks parser.
+
+============================================================
+Step 135000 — Correction Samples
+============================================================
+
+  Corrupted: Young plants and coppice regrowth havd leaves that are sessile, heart-shaped to round, klong and wide, arranged into opposite paurs with stem-clasping bases and finely notched or scalloped edges.
+  Generated: Young plants and coppice regrowth have leaves that are sessile, heart-shaped to round, long and wide, arranged into opposite pairs with stem-clasping bases and finely notched or scalloped edges.
+  Original:  Young plants and coppice regrowth have leaves that are sessile, heart-shaped to round, long and wide, arranged in opposite pairs with stem-clasping bases and finely notched or scalloped edges.
+
+  Corrupted: It was designed by the renowned American HModernist architect Richard Neutra, and built from 1962 to 1966.
+  Generated: It was designed by the renowned American Modernist architect Richard Neutra, and built from 1962 to 1966.
+  Original:  It was designed by the renowned American Modernist architect Richard Neutra, and built from 1962 to 1966.
+
+  Corrupted: Madonna stated that "Crave" was one of the first songs she wrote for Madame X, but had to put on hold when she began working with other musicians in Lisbon.
+  Generated: Madonna stated that "Crave" was one of the first songs she wrote for Madame X, but had to put on hold when she began working with other musicians in Lisbon.
+  Original:  Madonna stated that "Crave" was one of the first songs she wrote for Madame X, but had to put on hold when she began working with other musicians in Lisbon.
+
+============================================================
+Step 140000 — Correction Samples
+============================================================
+
+  Corrupted: Basec in LOndoN, UK, IGR is recognised by Workd Rugby as ther representative organisation of tje PGBT and inclusive rugby community, up to the point gthey both have siged a Memorqndum of Understanding outoining a commitment between the twwo organisations to work together to educate abd eliminate homophobka in rugby.
+  Generated: Based in London, UK, IGR is recognised by World Rugby as the representative organisation of the PGBT and inclusive rugby community, up to the point they both have signed a Memoranum of Understanding outlining a commitment between the two organisations to work together to educate and eliminate homophobia in rugby.
+  Original:  Based in London, UK, IGR is recognised by World Rugby as the representative organisation of the LGBT and inclusive rugby community, up to the point they both have signed a Memorandum of Understanding outlining a commitment between the two organisations to work together to educate and eliminate homophobia in rugby.
+
+  Corrupted: Acording to Karen Ruffle, assistant professor of religion at the University of Toronto, EVEN though muttʿah is prohibited by Sunni schols of lawseveral Types of impermanent marriage eixst, including misyar (ambulant) marriage and ʿurfi (customary) marriage, which gained popularity in parts of the Sunni world.
+  Generated: According to Karen Ruffle, assistant professor of religion at the University of Toronto, even though mutʿah is prohibited by Sunni schools of lawseveral types of impermanent marriage exist, including misyar (ambulant) marriage and ʿurfi (customary) marriage, which gained popularity in parts of the Sunni world.
+  Original:  According to Karen Ruffle, assistant professor of religion at the University of Toronto, even though mutʿah is prohibited by Sunni schools of law, several types of impermanent marriage exist, including misyar (ambulant) marriage and ʿurfi (customary) marriage, which gained popularity in parts of the Sunni world.
+
+  Corrupted: Approach phour "continuing teams" (Brisbane, Canberra, Newcastle and Auckland) to secure a 7-year commitmenrt.
+  Generated: Approach four "continuing teams" (Brisbane, Canberra, Newcastle and Auckland) to secure a 7-year commitment.
+  Original:  Approach four "continuing teams" (Brisbane, Canberra, Newcastle and Auckland) to secure a 7-year commitment.

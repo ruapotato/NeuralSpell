@@ -1,21 +1,29 @@
 # NeuralSpell Training Pipeline
 
-## Status: Training — Step 96K / 300K (32%)
+## Status: Pretrain finishing — Step 143K / 150K (95%), finetune next
 
 **[Training Progress Dashboard](https://ruapotato.github.io/NeuralSpell/dashboard.html)**
 
 ~385M parameter encoder-decoder spell corrector, trained from scratch on
-DFSG-compliant data only. Corruption engine upgraded to 22 error types
-at step 80K, calibrated against real human error research (BEA-2019,
-NUCLE, Birkbeck).
+DFSG-compliant data only. 22 error types calibrated against real human
+error research (BEA-2019, NUCLE, Birkbeck). Corruption engine enhanced
+at step 80K with grammar, determiners, prepositions, and more.
 
-**JFLEG benchmark (real human errors, 100 sentences):**
+**JFLEG benchmark (real human errors, 100 sentences, step 140K pretrain only):**
 
 | System | Params | Word Accuracy | Perfect Sentences |
 |--------|--------|---------------|-------------------|
 | aspell | dict | 88.0% | 23% |
-| **NeuralSpell (step 90K)** | 385M | 86.9% | **26%** |
+| **NeuralSpell** | 385M | 87.0% | 24% |
 | BART-base (oliverguhr) | 139M | 64.8% | 4% |
+
+**Sentence-level (our corruption engine, step 140K):**
+
+| System | Word Accuracy |
+|--------|---------------|
+| **NeuralSpell** | **87.4%** |
+| BART-base | 82.1% |
+| aspell | 73.1% |
 
 The encoder-decoder architecture removes the token-length constraint,
 enabling the model to learn all 11 corruption types including homophones,
