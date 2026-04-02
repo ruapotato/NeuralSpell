@@ -42,7 +42,7 @@ FINETUNE_CONFIG = {
     "save_interval": 10000,
     "eval_interval": 2000,
     "corruption_rate_min": 0.15,
-    "corruption_rate_max": 0.40,
+    "corruption_rate_max": 0.66,
     "identity_rate": 0.05,
 }
 
