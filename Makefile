@@ -2,7 +2,7 @@ PYTHON ?= python3
 DATA_DIR ?= data/raw
 PROCESSED_DIR ?= data/processed
 
-.PHONY: all data phonetics tokenizer pretrain finetune eval test verify dashboard export-dashboard clean
+.PHONY: all data phonetics tokenizer pretrain finetune hybrid eval test verify dashboard export-dashboard clean
 
 all: data phonetics tokenizer pretrain finetune eval
 
@@ -58,6 +58,13 @@ finetune:
 		--tokenizer tokenizer/tokenizer.model \
 		--pretrained checkpoints/pretrain/best.pt \
 		--checkpoint-dir checkpoints/finetune
+
+# Hybrid aspell+NN training (60M params, ~1 day)
+hybrid:
+	PYTHONPATH=. $(PYTHON) training/train_hybrid.py \
+		--data-dir $(PROCESSED_DIR) \
+		--tokenizer tokenizer/tokenizer.model \
+		--checkpoint-dir checkpoints/hybrid
 
 # Evaluation
 eval:
