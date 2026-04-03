@@ -41,9 +41,11 @@ FINETUNE_CONFIG = {
     "log_interval": 100,
     "save_interval": 10000,
     "eval_interval": 2000,
-    "corruption_rate_min": 0.15,
-    "corruption_rate_max": 0.66,
-    "identity_rate": 0.05,
+    # Sparse error distribution: realistic error density
+    # Most sentences have 0-2 errors, not 15-66%
+    "corruption_rate_min": 0.02,
+    "corruption_rate_max": 0.15,
+    "identity_rate": 0.30,  # 30% clean->clean to teach restraint
 }
 
 

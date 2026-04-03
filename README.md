@@ -1,32 +1,60 @@
 # NeuralSpell Training Pipeline
 
-## Status: Pretrain finishing — Step 143K / 150K (95%), finetune next
+## Status: Finetune v2 — sparse error training to reduce false positives
 
 **[Training Progress Dashboard](https://ruapotato.github.io/NeuralSpell/dashboard.html)**
 
 ~385M parameter encoder-decoder spell corrector, trained from scratch on
-DFSG-compliant data only. 22 error types calibrated against real human
-error research (BEA-2019, NUCLE, Birkbeck). Corruption engine enhanced
-at step 80K with grammar, determiners, prepositions, and more.
+DFSG-compliant data only. 22 rule-based error types calibrated against
+real human error research (BEA-2019, NUCLE, Birkbeck).
 
-**JFLEG benchmark (real human errors, 100 sentences, step 140K pretrain only):**
+### Latest Benchmarks (finetune v1, 50K steps, 15-66% corruption)
+
+**JFLEG (real human errors, 100 sentences):**
 
 | System | Params | Word Accuracy | Perfect Sentences |
 |--------|--------|---------------|-------------------|
 | aspell | dict | 88.0% | 23% |
-| **NeuralSpell** | 385M | 87.0% | 24% |
+| **NeuralSpell** | 385M | 86.7% | **29%** |
 | BART-base (oliverguhr) | 139M | 64.8% | 4% |
 
-**Sentence-level (our corruption engine, step 140K):**
+**Sentence-level (our corruption engine):**
 
 | System | Word Accuracy |
 |--------|---------------|
-| **NeuralSpell** | **87.4%** |
-| BART-base | 82.1% |
-| aspell | 73.1% |
+| **NeuralSpell** | **89.4%** |
+| BART-base | 82.7% |
+| aspell | 76.5% |
+
+**BEA-60K (standard benchmark, 500 sentences):**
+
+| System | Correction Rate | False Positives |
+|--------|----------------|-----------------|
+| aspell | 65.9% | 129 |
+| NeuralSpell | 64.4% | 699 |
+| NeuSpell BERT (published) | 79.1% | — |
+
+### Key Finding: False Positive Problem
+
+The model corrects harder errors than aspell (homophones 62.5% recall,
+missing spaces 83.3%) but aggressively rewrites correct text (699 false
+positives vs aspell's 129 on BEA-60K). The high corruption rate during
+fine-tuning (15-66%) taught the model that every sentence has many errors.
+
+**Fix: sparse error fine-tuning** — train with realistic error density
+(mostly clean text with 1-2 errors per sentence, plus many identity pairs)
+to teach the model restraint.
+
+### Training History
+
+1. **Pretrain Phase 1** (170K steps) — 22 error types, enhanced at step 80K
+   with grammar/determiners/prepositions/morphology. Loss 8.8 → 0.08.
+2. **Finetune v1** (50K steps, 15-66% corruption) — Improved corrections
+   but worsened false positives. Model too aggressive.
+3. **Finetune v2** (in progress) — Sparse errors, high identity rate.
 
 The encoder-decoder architecture removes the token-length constraint,
-enabling the model to learn all 11 corruption types including homophones,
+enabling the model to learn all 22 corruption types including homophones,
 phonetic misspellings, and missing-space corrections that change tokenization.
 
 ## Model Architecture
