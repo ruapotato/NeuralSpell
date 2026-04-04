@@ -36,26 +36,31 @@ class CorruptionWeights:
     """Relative weights for each corruption type.
 
     Weights are normalized to probabilities at runtime.
-    Calibrated against human error research (BEA-2019, NUCLE, Birkbeck).
-
-    Within non-word spelling, the research breakdown is:
-      deletion ~40%, substitution ~30%, insertion ~20%, transposition ~10%
+    Calibrated against BEA-60K actual error distribution:
+      char_insertion_needed (missing letter): 29.6%
+      char_substitution: 22.9%
+      char_deletion_needed (extra letter): 17.7%
+      multi_char (edit dist 2+): 13.9%
+      different_word: 6.8%
+      transposition: 6.1%
+      verb/grammar: 2-3%
     """
-    # Non-word spelling (typos): ~35-40% total
-    keyboard_adjacency: float = 12.0     # fat-finger substitution
-    deletion: float = 12.0               # missing character (most common typo)
-    insertion: float = 6.0               # extra character
-    transposition: float = 4.0           # swapped adjacent chars
+    # Spelling (91% of BEA-60K errors)
+    deletion: float = 40.0               # missing character -> 29.6% target
+    keyboard_adjacency: float = 30.0     # char substitution -> 22.9% target
+    insertion: float = 24.0              # extra character -> 17.7% target
+    transposition: float = 6.0           # swapped adjacent chars (6.1%)
     double_letter: float = 4.0           # add/remove doubled letter
-    phonetic_rewrite: float = 5.0        # character-level phonetic (ph->f etc)
-    suffix_confusion: float = 3.0        # -ible/-able, -ie/-ei
+    phonetic_rewrite: float = 3.0        # character-level phonetic (ph->f etc)
+    suffix_confusion: float = 2.0        # -ible/-able, -ie/-ei
+    vowel_swap: float = 2.0             # vowel confusion (0.6% but undertrained)
 
-    # Real-word errors: ~10-15% total
-    homophone: float = 8.0              # their/there/they're etc
-    phonetic_word: float = 3.0          # whole-word phonetic swap
+    # Real-word errors
+    homophone: float = 5.0              # their/there/they're etc
+    phonetic_word: float = 2.0          # whole-word phonetic swap
 
-    # Grammar errors: ~25-35% total (dispatched to grammar.py)
-    grammar: float = 25.0              # determiners, prepositions, tense, etc
+    # Grammar errors (~2-3% of BEA errors but important for GEC)
+    grammar: float = 10.0              # determiners, prepositions, tense, etc
 
     # Sentence-level: ~10-15% total
     missing_word: float = 6.0          # drop an article/preposition/aux verb
@@ -110,16 +115,17 @@ class CorruptionEngine:
 
         # Build normalized weight distribution for word-level corruptions
         self._word_types = [
-            ("keyboard_adjacency", self.weights.keyboard_adjacency),
-            ("transposition", self.weights.transposition),
-            ("insertion", self.weights.insertion),
             ("deletion", self.weights.deletion),
-            ("phonetic_word", self.weights.phonetic_word),
-            ("phonetic_rewrite", self.weights.phonetic_rewrite),
-            ("homophone", self.weights.homophone),
-            ("capitalization", self.weights.capitalization),
+            ("keyboard_adjacency", self.weights.keyboard_adjacency),
+            ("insertion", self.weights.insertion),
+            ("transposition", self.weights.transposition),
             ("double_letter", self.weights.double_letter),
+            ("phonetic_rewrite", self.weights.phonetic_rewrite),
             ("suffix_confusion", self.weights.suffix_confusion),
+            ("vowel_swap", self.weights.vowel_swap),
+            ("homophone", self.weights.homophone),
+            ("phonetic_word", self.weights.phonetic_word),
+            ("capitalization", self.weights.capitalization),
         ]
         total = sum(w for _, w in self._word_types)
         self._word_probs = [(t, w / total) for t, w in self._word_types]
@@ -210,6 +216,9 @@ class CorruptionEngine:
             result = phonetic_rewrite(word, self.rng)
             return result if result else word
 
+        elif ctype == "vowel_swap":
+            return self._vowel_swap(word)
+
         return word
 
     def _transpose(self, word: str) -> str:
@@ -233,10 +242,15 @@ class CorruptionEngine:
         return word[:pos] + char + word[pos:]
 
     def _delete_char(self, word: str) -> str:
-        """Delete a random character (not first or last)."""
-        if len(word) <= 3:
+        """Delete a random character. Prefers interior but allows any position."""
+        if len(word) <= 2:
             return word
-        pos = self.rng.randint(1, len(word) - 2)
+        if len(word) <= 3:
+            pos = self.rng.randint(0, len(word) - 1)
+        elif self.rng.random() < 0.8:
+            pos = self.rng.randint(1, len(word) - 2)  # interior (80%)
+        else:
+            pos = self.rng.randint(0, len(word) - 1)  # any position (20%)
         return word[:pos] + word[pos + 1:]
 
     def _corrupt_case(self, word: str) -> str:
@@ -252,6 +266,23 @@ class CorruptionEngine:
             return "".join(
                 c.upper() if self.rng.random() > 0.5 else c.lower() for c in word
             )
+
+    def _vowel_swap(self, word: str) -> str:
+        """Swap a vowel for a different vowel (e.g. 'a' -> 'e')."""
+        if len(word) < 3:
+            return word
+        vowels = "aeiou"
+        positions = [i for i in range(1, len(word) - 1)
+                    if word[i].lower() in vowels]
+        if not positions:
+            return word
+        pos = self.rng.choice(positions)
+        old = word[pos].lower()
+        alternatives = [v for v in vowels if v != old]
+        new = self.rng.choice(alternatives)
+        if word[pos].isupper():
+            new = new.upper()
+        return word[:pos] + new + word[pos + 1:]
 
     def _double_letter(self, word: str) -> str:
         """Add or remove a doubled letter."""
@@ -423,10 +454,10 @@ class CorruptionEngine:
         simulate severe misspellings seen in real human writing.
         Also applies sentence-level corruptions (grammar, punctuation, etc).
         """
-        # Case variation: 10% chance to convert sentence to ALL CAPS or
-        # random case before corrupting (trains the model to handle varied input)
+        # Case variation: 5% chance to convert sentence to ALL CAPS or
+        # random case before corrupting
         case_mode = None
-        if self.rng.random() < 0.10:
+        if self.rng.random() < 0.05:
             case_choice = self.rng.randint(0, 2)
             if case_choice == 0:
                 sentence = sentence.upper()
@@ -450,8 +481,8 @@ class CorruptionEngine:
             if match and len(match.group(1)) >= 3:
                 word, rest = match.group(1), match.group(2)
                 if self.rng.random() < word_corruption_rate:
-                    # 20% of corruptions are multi-edit (severe misspellings)
-                    multi = self.rng.random() < 0.20
+                    # 40% of corruptions are multi-edit (BEA-60K: 14% of errors are multi-char)
+                    multi = self.rng.random() < 0.40
                     word = self.corrupt_word(word, multi_edit=multi)
                 result_tokens.append(word + rest)
             else:
