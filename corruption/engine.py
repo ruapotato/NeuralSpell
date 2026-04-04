@@ -29,6 +29,7 @@ from corruption.keyboard import fat_finger_word
 from corruption.phonetic import PhoneticCorruptor, phonetic_rewrite
 from corruption.homophones import HomophoneCorruptor
 from corruption.grammar import corrupt_grammar
+from corruption.synonyms import synonym_swap
 
 
 @dataclass
@@ -59,12 +60,13 @@ class CorruptionWeights:
     suffix_confusion: float = 2.0        # -ible/-able, -ie/-ei
     vowel_swap: float = 2.0             # vowel confusion
 
-    # Real-word errors
+    # Real-word / word-level errors (31% of C4 errors)
+    synonym_swap: float = 20.0         # content word synonyms (give->provide, big->large)
     homophone: float = 3.0              # their/there/they're etc
     phonetic_word: float = 1.0          # whole-word phonetic swap
 
-    # Grammar/word-level errors (~35% of C4 errors - THE BIG GAP)
-    grammar: float = 30.0              # determiners, prepositions, tense, word_form
+    # Grammar/word-level errors
+    grammar: float = 20.0              # determiners, prepositions, tense, word_form
 
     # Sentence-level (~35% of C4 errors — word deletion/insertion dominate)
     missing_word: float = 20.0         # drop a word (18.8% of C4 errors!)
@@ -127,6 +129,7 @@ class CorruptionEngine:
             ("phonetic_rewrite", self.weights.phonetic_rewrite),
             ("suffix_confusion", self.weights.suffix_confusion),
             ("vowel_swap", self.weights.vowel_swap),
+            ("synonym_swap", self.weights.synonym_swap),
             ("homophone", self.weights.homophone),
             ("phonetic_word", self.weights.phonetic_word),
             ("capitalization", self.weights.capitalization),
@@ -223,6 +226,10 @@ class CorruptionEngine:
         elif ctype == "vowel_swap":
             return self._vowel_swap(word)
 
+        elif ctype == "synonym_swap":
+            result = synonym_swap(word, self.rng)
+            return result if result else word
+
         return word
 
     def _transpose(self, word: str) -> str:
@@ -308,13 +315,17 @@ class CorruptionEngine:
     # ─── Sentence-level corruptions ──────────────────────────────
 
     def _drop_word(self, sentence: str) -> str:
-        """Drop a random small word (article, preposition, auxiliary)."""
+        """Drop a random word. Prefers function words but can drop any word."""
         words = sentence.split()
-        candidates = [i for i, w in enumerate(words)
-                      if w.lower().rstrip(",.;:!?") in DROPPABLE_WORDS and i > 0]
-        if not candidates:
+        if len(words) < 4:
             return sentence
-        idx = self.rng.choice(candidates)
+        # 60% chance: drop a function word, 40% chance: drop any word
+        func_candidates = [i for i, w in enumerate(words)
+                          if w.lower().rstrip(",.;:!?") in DROPPABLE_WORDS and i > 0]
+        if func_candidates and self.rng.random() < 0.6:
+            idx = self.rng.choice(func_candidates)
+        else:
+            idx = self.rng.randint(1, len(words) - 2)  # any non-boundary word
         words.pop(idx)
         return " ".join(words)
 
@@ -497,6 +508,15 @@ class CorruptionEngine:
         # Sentence-level corruptions — apply multiple per sentence
         # C4_200M has ~19% word deletion and ~17% word insertion, so these
         # need to fire frequently. Each fires independently.
+
+        # Synonym swaps at sentence level (targets the 31% word_choice in C4)
+        words = result.split()
+        for wi in range(len(words)):
+            if self.rng.random() < 0.08:  # ~8% per word
+                swapped = synonym_swap(words[wi], self.rng)
+                if swapped:
+                    words[wi] = swapped
+        result = " ".join(words)
 
         # Grammar corruption (determiners, prepositions, tense, word_form)
         # Apply 1-2 grammar corruptions per sentence
