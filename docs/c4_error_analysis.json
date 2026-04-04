@@ -1,0 +1,398 @@
+{
+  "total_pairs": 100000,
+  "total_words": 2295554,
+  "total_edits": 539044,
+  "keep_rate": 0.7651791245163477,
+  "category_counts": {
+    "KEEP": 1756510,
+    "WORD_CHOICE": 168229,
+    "SPELLING": 128247,
+    "DELETE": 101303,
+    "INSERT": 88844,
+    "CASE": 30139,
+    "GRAMMAR": 22216,
+    "REAL_WORD": 66
+  },
+  "subcategory_counts": {
+    "WORD_CHOICE.different_word": 168229,
+    "DELETE.word_deletion": 101303,
+    "SPELLING.char_insertion_needed": 49861,
+    "SPELLING.multi_char": 36182,
+    "SPELLING.char_deletion_needed": 21858,
+    "CASE.to_title": 21745,
+    "SPELLING.char_substitution": 17802,
+    "GRAMMAR.verb_form": 16896,
+    "INSERT.word_the": 10560,
+    "CASE.to_lower": 7319,
+    "INSERT.word_a": 5329,
+    "GRAMMAR.verb_tense": 4680,
+    "INSERT.word_of": 2624,
+    "INSERT.word_to": 2587,
+    "SPELLING.transposition": 2421,
+    "INSERT.word_in": 1815,
+    "INSERT.word_and": 1558,
+    "INSERT.word_is": 1468,
+    "INSERT.word_for": 1191,
+    "INSERT.word_that": 1124,
+    "INSERT.word_an": 1104,
+    "INSERT.word_on": 959,
+    "INSERT.word_with": 845,
+    "CASE.to_upper": 802,
+    "INSERT.word_are": 730,
+    "INSERT.word_be": 715,
+    "INSERT.word_it": 677,
+    "INSERT.word_as": 677,
+    "INSERT.word_at": 661,
+    "INSERT.word_have": 587,
+    "INSERT.word_will": 556,
+    "INSERT.word_has": 537,
+    "INSERT.word_.": 517,
+    "INSERT.word_this": 471,
+    "INSERT.word_was": 468,
+    "INSERT.word_you": 463,
+    "INSERT.word_by": 407,
+    "INSERT.word_from": 393,
+    "INSERT.word_your": 382,
+    "INSERT.word_-": 373,
+    "GRAMMAR.missing_plural": 341,
+    "GRAMMAR.extra_plural": 299,
+    "INSERT.word_their": 290,
+    "CASE.other": 273,
+    "INSERT.word_all": 257,
+    "INSERT.word_our": 255,
+    "INSERT.word_\u2013": 255,
+    "INSERT.word_or": 247,
+    "INSERT.word_out": 243,
+    "INSERT.word_can": 240,
+    "INSERT.word_its": 237,
+    "INSERT.word_up": 236,
+    "INSERT.word_been": 233,
+    "INSERT.word_any": 213,
+    "INSERT.word_i": 213,
+    "INSERT.word_do": 211,
+    "INSERT.word_would": 210,
+    "INSERT.word_more": 205,
+    "INSERT.word_about": 199,
+    "INSERT.word_which": 199,
+    "INSERT.word_also": 196,
+    "INSERT.word_one": 183,
+    "INSERT.word_we": 182,
+    "INSERT.word_being": 179,
+    "INSERT.word_they": 177,
+    "INSERT.word_his": 175,
+    "INSERT.word_who": 171,
+    "INSERT.word_what": 165,
+    "INSERT.word_\u2014": 163,
+    "INSERT.word_not": 145,
+    "INSERT.word_there": 140,
+    "INSERT.word_had": 139,
+    "INSERT.word_other": 138,
+    "INSERT.word_my": 137,
+    "INSERT.word_he": 134,
+    "INSERT.word_if": 125,
+    "INSERT.word_those": 123,
+    "INSERT.word_when": 119,
+    "INSERT.word_does": 118,
+    "INSERT.word_these": 115,
+    "INSERT.word_some": 114,
+    "INSERT.word_were": 112,
+    "INSERT.word_so": 111,
+    "INSERT.word_get": 110,
+    "INSERT.word_how": 109,
+    "SPELLING.vowel_confusion": 107,
+    "INSERT.word_new": 102,
+    "INSERT.word_into": 99,
+    "INSERT.word_such": 98,
+    "INSERT.word_use": 98,
+    "INSERT.word_then": 94,
+    "INSERT.word_now": 94,
+    "INSERT.word_just": 93,
+    "INSERT.word_us": 92,
+    "INSERT.word_like": 90,
+    "INSERT.word_her": 87,
+    "INSERT.word_may": 87,
+    "INSERT.word_over": 86,
+    "INSERT.word_time": 86,
+    "INSERT.word_available": 86
+  },
+  "operation_counts": {
+    "KEEP": 1756510,
+    "REPLACE": 348897,
+    "DELETE": 101303,
+    "INSERT": 88844
+  },
+  "examples": {
+    "WORD_CHOICE.different_word": [
+      {
+        "from": "is",
+        "to": "goes"
+      },
+      {
+        "from": "CoinDesk",
+        "to": "to"
+      },
+      {
+        "from": "says.",
+        "to": "CoinDesk."
+      }
+    ],
+    "GRAMMAR.verb_form": [
+      {
+        "from": "which",
+        "to": "according"
+      },
+      {
+        "from": "according",
+        "to": "(purchase"
+      },
+      {
+        "from": "working",
+        "to": "plus"
+      }
+    ],
+    "INSERT": [
+      {
+        "word": "1."
+      },
+      {
+        "word": "Capital"
+      },
+      {
+        "word": "Gains"
+      },
+      {
+        "word": "the"
+      },
+      {
+        "word": "between"
+      }
+    ],
+    "SPELLING.char_insertion_needed": [
+      {
+        "from": "widespread",
+        "to": "\"widespread"
+      },
+      {
+        "from": "dud",
+        "to": "dud\""
+      },
+      {
+        "from": "3.6",
+        "to": "3.6."
+      }
+    ],
+    "SPELLING.char_deletion_needed": [
+      {
+        "from": "sales",
+        "to": "sale"
+      },
+      {
+        "from": "law).",
+        "to": "law."
+      },
+      {
+        "from": "Watcch",
+        "to": "Watch"
+      }
+    ],
+    "DELETE": [
+      {
+        "word": "non"
+      },
+      {
+        "word": "sales"
+      },
+      {
+        "word": "(price"
+      },
+      {
+        "word": "differences"
+      },
+      {
+        "word": "Much"
+      }
+    ],
+    "CASE.to_title": [
+      {
+        "from": "many",
+        "to": "Many"
+      },
+      {
+        "from": "this",
+        "to": "This"
+      },
+      {
+        "from": "progressives",
+        "to": "Progressives"
+      }
+    ],
+    "CASE.to_lower": [
+      {
+        "from": "Maintenance",
+        "to": "maintenance"
+      },
+      {
+        "from": "Biodiversity",
+        "to": "biodiversity"
+      },
+      {
+        "from": "Socio-economic",
+        "to": "socio-economic"
+      }
+    ],
+    "SPELLING.multi_char": [
+      {
+        "from": "Momover,",
+        "to": "Moreover,"
+      },
+      {
+        "from": "has",
+        "to": "have"
+      },
+      {
+        "from": "even",
+        "to": "given"
+      }
+    ],
+    "GRAMMAR.verb_tense": [
+      {
+        "from": "involved's",
+        "to": "involved"
+      },
+      {
+        "from": "contacted",
+        "to": "contact"
+      },
+      {
+        "from": "handmade",
+        "to": "handcrafted"
+      }
+    ],
+    "SPELLING.char_substitution": [
+      {
+        "from": "movement.",
+        "to": "movement!"
+      },
+      {
+        "from": "stuff",
+        "to": "staff"
+      },
+      {
+        "from": "Of",
+        "to": "If"
+      }
+    ],
+    "CASE.other": [
+      {
+        "from": "iphone",
+        "to": "iPhone"
+      },
+      {
+        "from": "LBWoven",
+        "to": "lbWoven"
+      },
+      {
+        "from": "Ipod).",
+        "to": "iPod)."
+      }
+    ],
+    "SPELLING.transposition": [
+      {
+        "from": "fo",
+        "to": "of"
+      },
+      {
+        "from": "Evna",
+        "to": "Evan"
+      },
+      {
+        "from": "quite",
+        "to": "quiet"
+      }
+    ],
+    "CASE.to_upper": [
+      {
+        "from": "Tv",
+        "to": "TV"
+      },
+      {
+        "from": "a",
+        "to": "A"
+      },
+      {
+        "from": "Cbd?",
+        "to": "CBD?"
+      }
+    ],
+    "GRAMMAR.missing_plural": [
+      {
+        "from": "establish",
+        "to": "establishes"
+      },
+      {
+        "from": "business",
+        "to": "businesses"
+      },
+      {
+        "from": "brush",
+        "to": "brushes"
+      }
+    ],
+    "GRAMMAR.extra_plural": [
+      {
+        "from": "Stes",
+        "to": "St"
+      },
+      {
+        "from": "beaches",
+        "to": "Beach"
+      },
+      {
+        "from": "imagees",
+        "to": "image"
+      }
+    ],
+    "REAL_WORD.homophone": [
+      {
+        "from": "there",
+        "to": "their"
+      },
+      {
+        "from": "there",
+        "to": "their"
+      },
+      {
+        "from": "your",
+        "to": "you're"
+      }
+    ],
+    "SPELLING.vowel_confusion": [
+      {
+        "from": "costum",
+        "to": "custom"
+      },
+      {
+        "from": "costamisation",
+        "to": "customisation"
+      },
+      {
+        "from": "yagort,",
+        "to": "yogurt,"
+      }
+    ],
+    "SPELLING.phonetic": [
+      {
+        "from": "lit",
+        "to": "light"
+      },
+      {
+        "from": "sulphuric",
+        "to": "sulfuric"
+      },
+      {
+        "from": "lit",
+        "to": "light"
+      }
+    ]
+  }
+}

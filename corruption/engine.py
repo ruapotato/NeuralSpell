@@ -45,30 +45,34 @@ class CorruptionWeights:
       transposition: 6.1%
       verb/grammar: 2-3%
     """
-    # Spelling (91% of BEA-60K errors)
-    deletion: float = 40.0               # missing character -> 29.6% target
-    keyboard_adjacency: float = 30.0     # char substitution -> 22.9% target
-    insertion: float = 24.0              # extra character -> 17.7% target
-    transposition: float = 6.0           # swapped adjacent chars (6.1%)
-    double_letter: float = 4.0           # add/remove doubled letter
-    phonetic_rewrite: float = 3.0        # character-level phonetic (ph->f etc)
+    # Calibrated against BOTH BEA-60K (spelling) AND C4_200M (GEC).
+    # C4_200M distribution: 31% word_choice, 19% delete, 17% insert,
+    # 9% missing_char, 7% multi_char, 6% case, 4% extra_char, 3% sub, 3% grammar
+
+    # Character-level spelling (~24% of C4 errors)
+    deletion: float = 15.0               # missing character
+    keyboard_adjacency: float = 8.0      # char substitution
+    insertion: float = 8.0               # extra character
+    transposition: float = 3.0           # swapped adjacent chars
+    double_letter: float = 3.0           # add/remove doubled letter
+    phonetic_rewrite: float = 2.0        # character-level phonetic (ph->f etc)
     suffix_confusion: float = 2.0        # -ible/-able, -ie/-ei
-    vowel_swap: float = 2.0             # vowel confusion (0.6% but undertrained)
+    vowel_swap: float = 2.0             # vowel confusion
 
     # Real-word errors
-    homophone: float = 5.0              # their/there/they're etc
-    phonetic_word: float = 2.0          # whole-word phonetic swap
+    homophone: float = 3.0              # their/there/they're etc
+    phonetic_word: float = 1.0          # whole-word phonetic swap
 
-    # Grammar errors (~2-3% of BEA errors but important for GEC)
-    grammar: float = 10.0              # determiners, prepositions, tense, etc
+    # Grammar/word-level errors (~35% of C4 errors - THE BIG GAP)
+    grammar: float = 30.0              # determiners, prepositions, tense, word_form
 
-    # Sentence-level: ~10-15% total
-    missing_word: float = 6.0          # drop an article/preposition/aux verb
-    extra_word: float = 3.0            # repeat a word or insert filler
-    punctuation: float = 5.0           # comma, apostrophe, period errors
-    missing_space: float = 3.0         # join adjacent words
-    split_word: float = 2.0            # add space inside a word
-    capitalization: float = 3.0        # case errors
+    # Sentence-level (~35% of C4 errors — word deletion/insertion dominate)
+    missing_word: float = 20.0         # drop a word (18.8% of C4 errors!)
+    extra_word: float = 8.0            # repeat/insert a word
+    punctuation: float = 3.0           # comma, apostrophe, period errors
+    missing_space: float = 2.0         # join adjacent words
+    split_word: float = 1.0            # add space inside a word
+    capitalization: float = 6.0        # case errors (5.6% of C4)
 
 
 # Common small words that get dropped in human writing
@@ -490,34 +494,37 @@ class CorruptionEngine:
 
         result = "".join(result_tokens)
 
-        # Sentence-level corruptions — each applied independently
-        # with probability proportional to its weight
-        total_sent_weight = sum(w for _, w in self._sentence_types)
+        # Sentence-level corruptions — apply multiple per sentence
+        # C4_200M has ~19% word deletion and ~17% word insertion, so these
+        # need to fire frequently. Each fires independently.
 
-        # Grammar corruption (includes determiners, prepositions, tense, etc)
-        if self.rng.random() < (self.weights.grammar / total_sent_weight) * 0.5:
-            grammar_result = corrupt_grammar(result, self.rng)
-            if grammar_result:
-                result = grammar_result
+        # Grammar corruption (determiners, prepositions, tense, word_form)
+        # Apply 1-2 grammar corruptions per sentence
+        for _ in range(self.rng.randint(0, 2)):
+            if self.rng.random() < 0.4:
+                grammar_result = corrupt_grammar(result, self.rng)
+                if grammar_result:
+                    result = grammar_result
 
-        # Missing word
-        if self.rng.random() < (self.weights.missing_word / total_sent_weight) * 0.3:
+        # Missing word — drop 1-3 words per sentence (C4: 18.8%)
+        num_drops = self.rng.choices([0, 1, 2, 3], weights=[40, 30, 20, 10])[0]
+        for _ in range(num_drops):
             result = self._drop_word(result)
 
-        # Extra/repeated word
-        if self.rng.random() < (self.weights.extra_word / total_sent_weight) * 0.2:
+        # Extra/repeated word (C4: ~5% combined with insert)
+        if self.rng.random() < 0.15:
             result = self._repeat_word(result)
 
         # Punctuation
-        if self.rng.random() < (self.weights.punctuation / total_sent_weight) * 0.3:
+        if self.rng.random() < 0.10:
             result = self._corrupt_punctuation(result)
 
         # Missing space
-        if self.rng.random() < (self.weights.missing_space / total_sent_weight) * 0.15:
+        if self.rng.random() < 0.05:
             result = self._remove_space(result)
 
         # Split compound word
-        if self.rng.random() < (self.weights.split_word / total_sent_weight) * 0.1:
+        if self.rng.random() < 0.03:
             result = self._split_compound(result)
 
         return result
